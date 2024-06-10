@@ -1,10 +1,17 @@
 :root {
   --devicesmall: false;
+  --smalldevicethsize: 4.5vw;
 }
 
 body {
   display: flex;
 }
+#tablescontainer {
+  width: 100vw;
+  height: 100vh;
+  background-color: rgb(255, 255, 255);
+}
+
 
 /* Target the calendar table element */
 #calendar {
@@ -33,36 +40,6 @@ body {
   transform: translate(0%, -50%);
 }
 
-@media (max-width: 768px) {
-  :root{
-    --devicesmall: true;
-  }
-  #calsidebar {
-    width: 85vw;
-    height: 10vh;
-    margin: 0 auto;
-    margin-top: 84.5vh;
-    position: fixed;
-    border: 1vmin solid #000000;
-    border-collapse: collapse;
-    top: 0%;
-    left: 50%;
-    transform: translate(-50%, 0%);
-  }
-  #calendar {
-    width: 90vw;
-    height: 70vh;
-    margin: 0 auto;
-  
-    border: 1vmin solid #000000;
-    border-collapse: collapse;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-  }
-}
-
 /* Style all table cells (TH and TD) */
 #calendar td,
 #calendar th,
@@ -74,14 +51,116 @@ body {
   width: 12.14%;
 }
 
-#calendar td {
+#calendar tr td {
   font-size: 2.4vw;
 }
 
 /* Optional: Style table headers (TH) differently */
 #calendar th {
-  border: 0px;
+  border: 0.5vmin solid #000000;
   font-size: 2vw;
   /* Adjust for desired header font size */
   background-color: #c0c0c0;
+}
+
+#calsidebar tr td {
+  height: 0%;
+}
+#calsidebar tr td a {
+  text-decoration: none;
+  font-size: 1.7vw;
+  background: silver;
+  color: rgb(0, 0, 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+}
+
+#calsidebar tr td a:hover {
+  background: rgb(0, 0, 0);
+  color: #fff;
+}
+
+
+#datepickercontainer {
+  z-index: 9;
+  position: absolute;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+#datepickerheader {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+#datepicker {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: 1vh;
+  padding-bottom: 1vh;
+  padding-left: 1vh;
+  padding-right: 1vh;
+  width: 30vw;
+  background: silver;
+}
+#datepicker h3 {
+  margin-top: 0;
+  font-size: 133%;
+}
+#datepicker label {
+  font-size: 400%;
+}
+#datepicker input {
+  height: 6vh;
+  font-size: 5vh;
+  width: 97%;
+}
+
+@media (max-width: 768px) {
+  :root {
+    --devicesmall: true;
+  }
+
+  #calsidebar {
+    width: 90vw;
+    height: 10vh;
+    margin: 0 auto;
+    margin-top: 77.2vh;
+    /*margin-top: 7.4vh; if to put the bar above the calendar*/
+    top: 0%;
+    left: 50%;
+    transform: translate(-50%, 0%);
+  }
+  #calsidebar tr td a {
+    font-size: 6vw;
+  }
+
+  #calendar {
+    width: 90vw;
+    height: 60vh;
+    margin: 0 auto;
+  }
+  #calendar tr td {
+    font-size: 5.9vw;
+  }
+  #calendar tr th {
+    /*font-size: 2.5vw;*/
+    /*font-size: 4.5vw;*/
+    font-size: var(--smalldevicethsize);
+  }
+
+  #datepicker {
+    width: 70vw;
+  }
+  #datepicker input {
+    height: 4vh;
+    width: 97%;
+  }
 }

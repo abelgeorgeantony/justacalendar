@@ -10,8 +10,45 @@
 </head>
 
 <body onload="loadTable()">
-    <table id="calendar"></table>
-    <table id="calsidebar"></table>
+    <div id="datepickercontainer">
+        <div id="datepicker">
+            <div id="datepickerheader">
+                <h3>Date Picker</h3>
+                <button onclick="hidedatepicker()">X</button>
+            </div>
+            <label for="date">Date:</label>
+            <br>
+            <input type="number" id="date" name="date" min="1" max="30">
+            <br>
+            <label for="month">Month:</label>
+            <br>
+            <input list="months">
+            <br>
+            <label for="year">Year:</label>
+            <br>
+            <input type="number" id="year" name="year" min="1" max="3000">
+            <br>
+        </div>
+    </div>
+    <div id="tablescontainer">
+        <table id="calendar"></table>
+        <table id="calsidebar"></table>
+    </div>
 </body>
+
+<datalist id="months">
+    <option>January</option>
+    <option>February</option>
+    <option>March</option>
+    <option>April</option>
+    <option>May</option>
+    <option>June</option>
+    <option>July</option>
+    <option>August</option>
+    <option>September</option>
+    <option>October</option>
+    <option>November</option>
+    <option>December</option>
+</datalist>
 
 </html>
