@@ -1,0 +1,87 @@
+:root {
+  --devicesmall: false;
+}
+
+body {
+  display: flex;
+}
+
+/* Target the calendar table element */
+#calendar {
+  width: 80vw;
+  height: 85vh;
+  margin: 0 auto;
+
+  border: 1vmin solid #000000;
+  border-collapse: collapse;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+#calsidebar {
+  width: 10vw;
+  height: 85vh;
+  margin: 0 auto;
+  margin-left: 89.5vw;
+  position: fixed;
+  border: 1vmin solid #000000;
+  border-collapse: collapse;
+  top: 50%;
+  left: 0%;
+  transform: translate(0%, -50%);
+}
+
+@media (max-width: 768px) {
+  :root{
+    --devicesmall: true;
+  }
+  #calsidebar {
+    width: 85vw;
+    height: 10vh;
+    margin: 0 auto;
+    margin-top: 84.5vh;
+    position: fixed;
+    border: 1vmin solid #000000;
+    border-collapse: collapse;
+    top: 0%;
+    left: 50%;
+    transform: translate(-50%, 0%);
+  }
+  #calendar {
+    width: 90vw;
+    height: 70vh;
+    margin: 0 auto;
+  
+    border: 1vmin solid #000000;
+    border-collapse: collapse;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* Style all table cells (TH and TD) */
+#calendar td,
+#calendar th,
+#calsidebar td {
+  /*font-size: 1.5em;  /* Adjust for desired font size */
+  border: 0.5vmin solid #000000;
+  padding: 1vmin;
+  text-align: center;
+  width: 12.14%;
+}
+
+#calendar td {
+  font-size: 2.4vw;
+}
+
+/* Optional: Style table headers (TH) differently */
+#calendar th {
+  border: 0px;
+  font-size: 2vw;
+  /* Adjust for desired header font size */
+  background-color: #c0c0c0;
+}
