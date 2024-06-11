@@ -72,10 +72,10 @@ function loadTable() {
         generateTableHeadings();
         fillCalendar(currentdate);
         addsidebarcontent();
-        //showdatepicker();
         hidedatepicker();
     }
     else {
+        hidedatepicker();
         document.querySelector(":root").style.setProperty("--smalldevicethsize", "2.5vw");
         generateWelcomeCalendar();
     }
@@ -188,6 +188,9 @@ function generateWelcomeCalendar() {
         "J", "U", "S", "T", "A", "C", "A",
         "L", "E", "N", "D", "A", "R", "!"
     ];
+    for (let week = 0; week < 4; week++) {
+        addalastrow();
+    }
     const cells = table.querySelectorAll('TD'); // assigning td and th to cells
     for (const [index, cell] of cells.entries()) {
         if (msg[index] != "") {
