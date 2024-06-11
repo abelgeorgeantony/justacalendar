@@ -4,7 +4,7 @@ class myname {
         this.shortname = this.reducename(3);
     }
     reducename(length) {
-        if(length === (this.fullname.length-1)) {
+        if (length === (this.fullname.length - 1)) {
             return this.fullname;;
         }
         else if (length === this.fullname.length || length > this.fullname.length || length === 0) {
@@ -69,7 +69,7 @@ function loadTable() {
     if (isSignedIn() === true) {
         document.querySelector(":root").style.setProperty("--smalldevicethsize", "4.5vw");
         const currentdate = new Date();
-        generateMonthStructure(weekscount(currentdate));
+        generateTableHeadings();
         fillCalendar(currentdate);
         addsidebarcontent();
         //showdatepicker();
@@ -80,9 +80,71 @@ function loadTable() {
         generateWelcomeCalendar();
     }
 }
-function generateMonthStructure(weeks) {
-    deletetable();
+function updatedate() {
+    const inputfields = document.getElementById("datepicker").querySelectorAll("input");
+    let monthindex;
+    for (const [index, month] of months.entries()) {
+        if (month.fullname === inputfields[1].value) {
+            monthindex = index;
+        }
+    }
+    let good_date = false;
+    let year = inputfields[2].value;
+    let date = inputfields[0].value;
+    if (monthindex === 1) { //february
+        if (isLeap(year) === true) {
+            if (date >= 1 && date <= 29) {
+                good_date = true;
+            }
+            else {
+                good_date = false;
+            }
+        }
+        else if (isLeap(year) === false) {
+            if (date >= 1 && date <= 28) {
+                good_date = true;
+            }
+            else {
+                good_date = false;
+            }
+        }
+        else {
+            good_date = false;
+        }
+    }
+    else if (monthindex === 3 || monthindex === 5 || monthindex === 8 || monthindex === 10) {
+        if (date >= 1 && date <= 30) {
+            good_date = true;
+        }
+        else {
+            good_date = false;
+        }
+    }
+    else if (monthindex === 0 || monthindex === 2 || monthindex === 4 || monthindex === 6 || monthindex === 7 || monthindex === 9 || monthindex === 11){
+        if (date >= 1 && date <= 31) {
+            good_date = true;
+        }
+        else {
+            good_date = false;
+        }
+    }
+    else {
+        good_date = false;
+    }
+    if (good_date === true) {
+        console.log("good_date: "+good_date);
+        let newdate = new Date(year, monthindex, date);
+        fillCalendar(newdate);
+        addsidebarcontent();
+    }
+    else {
+        console.log("good_date: "+good_date);
+    }
+}
+function generateTableHeadings() {
     const table = document.getElementById('calendar');
+    deletetable();
+    table.innerHTML = "";
     let tr = document.createElement('tr'); // Create table header row
     for (const day of days) {
         const th = document.createElement('th');
@@ -92,15 +154,14 @@ function generateMonthStructure(weeks) {
     }
     table.appendChild(tr); // Add header row to table
 
-    for (let week = 0; week < weeks; week++) {
+    /*for (let week = 0; week < weeks; week++) {
         addalastrow();
-    }
-    //styleCalendar();
+    }*/
 }
 
 function generateWelcomeCalendar() {
     const table = document.getElementById('calendar');
-    generateMonthStructure(4);
+    generateTableHeadings();
 
     const innhtml = [
         "<a href=\"/home\">Home</a>",
@@ -184,14 +245,29 @@ function showdatepicker() {
     inputfields[0].value = displayed_date.getDate();
     inputfields[1].value = months[displayed_date.getMonth()].fullname;
     inputfields[2].value = displayed_date.getFullYear();
-    dragElement(document.getElementById("datepicker"));
+    dragDatePicker(document.getElementById("datepicker"));
     document.getElementById("datepickercontainer").style.zIndex = "9";
+    inputfields[0].readOnly = false;
+    inputfields[1].readOnly = false;
+    inputfields[2].readOnly = false;
 }
 function hidedatepicker() {
+    const inputfields = document.getElementById("datepicker").querySelectorAll("input");
+    inputfields[0].readOnly = true;
+    inputfields[1].readOnly = true;
+    inputfields[2].readOnly = true;
     document.getElementById("datepickercontainer").style.zIndex = "-1";
+    const css_devicesmall = getComputedStyle(document.querySelector(':root')).getPropertyValue("--devicesmall");
+    if (css_devicesmall === "false") {
+        document.getElementById("datepicker").style.top = "50%";
+        document.getElementById("datepicker").style.left = "50%";
+        document.getElementById("datepicker").style.transform = 'translate(-50%, -50%)';
+        //document.getElementById("datepicker").style.transform = "translateY(-50%)";
+    }
 }
 function addsidebarcontent() {
     const sidebar = document.getElementById('calsidebar');
+    sidebar.innerHTML = "";
     const css_devicesmall = getComputedStyle(document.querySelector(':root')).getPropertyValue("--devicesmall");
     const cellcontent = [displayed_date.getDate(), months[displayed_date.getMonth()].shortname, displayed_date.getFullYear(), "Time<br>Hop"];
     if (css_devicesmall === "false") {
@@ -224,49 +300,53 @@ function addsidebarcontent() {
     }
 }
 
-function dragElement(elmnt) {
+function dragDatePicker(elmnt) {
     var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
     if (document.getElementById(elmnt.id + "header")) {
-      // if present, the header is where you move the DIV from:
-      document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
+        // if present, the header is where you move the DIV from:
+        document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
     } else {
-      // otherwise, move the DIV from anywhere inside the DIV:
-      elmnt.onmousedown = dragMouseDown;
+        // otherwise, move the DIV from anywhere inside the DIV:
+        elmnt.onmousedown = dragMouseDown;
     }
-  
+
     function dragMouseDown(e) {
-      e = e || window.event;
-      e.preventDefault();
-      // get the mouse cursor position at startup:
-      pos3 = e.clientX;
-      pos4 = e.clientY;
-      document.onmouseup = closeDragElement;
-      // call a function whenever the cursor moves:
-      document.onmousemove = elementDrag;
+        e = e || window.event;
+        e.preventDefault();
+        // get the mouse cursor position at startup:
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        document.onmouseup = closeDragElement;
+        // call a function whenever the cursor moves:
+        document.onmousemove = elementDrag;
     }
-  
+
     function elementDrag(e) {
-      e = e || window.event;
-      e.preventDefault();
-      // calculate the new cursor position:
-      pos1 = pos3 - e.clientX;
-      pos2 = pos4 - e.clientY;
-      pos3 = e.clientX;
-      pos4 = e.clientY;
-      // set the element's new position:
-      elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
-      elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+        e = e || window.event;
+        e.preventDefault();
+        // calculate the new cursor position:
+        pos1 = pos3 - e.clientX;
+        pos2 = pos4 - e.clientY;
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        // set the element's new position:
+        elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+        elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
     }
-  
+
     function closeDragElement() {
-      // stop moving when mouse button is released:
-      document.onmouseup = null;
-      document.onmousemove = null;
+        // stop moving when mouse button is released:
+        document.onmouseup = null;
+        document.onmousemove = null;
     }
-  }
+}
 
 
 function fillCalendar(cdate) {
+    deletetable();
+    for (let i = 0; i < weekscount(cdate); i++) {
+        addalastrow();
+    }
     displayed_date = cdate;
     const year = cdate.getFullYear();
     const month = cdate.getMonth();
@@ -276,6 +356,7 @@ function fillCalendar(cdate) {
     let datecount = 0;
     //let monthlcount = 0;
     for (const [index, cell] of cells.entries()) {
+        cell.innerHTML = "";
         if (index === (firstday + datecount)) {
             datecount++;
             cell.textContent = datecount;
@@ -283,7 +364,8 @@ function fillCalendar(cdate) {
                 cell.style.backgroundColor = "silver";
             }
         }
-        /*else {
+        /* If to add anything to the blank cells
+        else {
             cell.textContent = months[month].fullname[monthlcount];
             cell.textContent = cell.textContent.toUpperCase();
             if (months[month].fullname[monthlcount + 1] === undefined) {

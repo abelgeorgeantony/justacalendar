@@ -14,19 +14,19 @@
         <div id="datepicker">
             <div id="datepickerheader">
                 <h3>Date Picker</h3>
-                <button onclick="hidedatepicker()">X</button>
+                <button id="datepickerclosebutton" onclick="hidedatepicker()">X</button>
             </div>
             <label for="date">Date:</label>
             <br>
-            <input type="number" id="date" name="date" min="1" max="30">
+            <input type="number" id="date" name="date" onchange="updatedate()" min="1" max="30">
             <br>
             <label for="month">Month:</label>
             <br>
-            <input list="months">
+            <input list="months" id="month" onchange="updatedate()">
             <br>
             <label for="year">Year:</label>
             <br>
-            <input type="number" id="year" name="year" min="1" max="3000">
+            <input type="number" id="year" name="year" onchange="updatedate()" min="1" max="3000">
             <br>
         </div>
     </div>
@@ -35,6 +35,16 @@
         <table id="calsidebar"></table>
     </div>
 </body>
+<script>
+    document.getElementById("datepickerheader").addEventListener("mousedown", grabbingcursor);
+    document.getElementById("datepickerheader").addEventListener("mouseup", hoveringcursor);
+    function grabbingcursor() {
+        document.getElementById("datepickerheader").style.cursor = "grabbing";
+    }
+    function hoveringcursor() {
+        document.getElementById("datepickerheader").style.cursor = "grab";
+    }
+</script>
 
 <datalist id="months">
     <option>January</option>
