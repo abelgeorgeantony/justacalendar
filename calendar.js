@@ -72,10 +72,8 @@ function loadTable() {
         generateTableHeadings();
         fillCalendar(currentdate);
         addsidebarcontent();
-        hidedatepicker();
     }
     else {
-        hidedatepicker();
         document.querySelector(":root").style.setProperty("--smalldevicethsize", "2.5vw");
         generateWelcomeCalendar();
     }
@@ -120,7 +118,7 @@ function updatedate() {
             good_date = false;
         }
     }
-    else if (monthindex === 0 || monthindex === 2 || monthindex === 4 || monthindex === 6 || monthindex === 7 || monthindex === 9 || monthindex === 11){
+    else if (monthindex === 0 || monthindex === 2 || monthindex === 4 || monthindex === 6 || monthindex === 7 || monthindex === 9 || monthindex === 11) {
         if (date >= 1 && date <= 31) {
             good_date = true;
         }
@@ -132,13 +130,13 @@ function updatedate() {
         good_date = false;
     }
     if (good_date === true) {
-        console.log("good_date: "+good_date);
+        console.log("good_date: " + good_date);
         let newdate = new Date(year, monthindex, date);
         fillCalendar(newdate);
         addsidebarcontent();
     }
     else {
-        console.log("good_date: "+good_date);
+        console.log("good_date: " + good_date);
     }
 }
 function generateTableHeadings() {
@@ -226,7 +224,7 @@ function deletetable() {
 }
 function addalastrow() {
     const table = document.getElementById('calendar');
-    tr = document.createElement('tr'); // Create new table row
+    const tr = document.createElement('tr'); // Create new table row
     // Add 7 empty cells
     for (let i = 0; i < 7; i++) {
         const cell = document.createElement('td');
@@ -243,31 +241,6 @@ function removelastrow() {
     }
 }
 
-function showdatepicker() {
-    const inputfields = document.getElementById("datepicker").querySelectorAll("input");
-    inputfields[0].value = displayed_date.getDate();
-    inputfields[1].value = months[displayed_date.getMonth()].fullname;
-    inputfields[2].value = displayed_date.getFullYear();
-    dragDatePicker(document.getElementById("datepicker"));
-    document.getElementById("datepickercontainer").style.zIndex = "9";
-    inputfields[0].readOnly = false;
-    inputfields[1].readOnly = false;
-    inputfields[2].readOnly = false;
-}
-function hidedatepicker() {
-    const inputfields = document.getElementById("datepicker").querySelectorAll("input");
-    inputfields[0].readOnly = true;
-    inputfields[1].readOnly = true;
-    inputfields[2].readOnly = true;
-    document.getElementById("datepickercontainer").style.zIndex = "-1";
-    const css_devicesmall = getComputedStyle(document.querySelector(':root')).getPropertyValue("--devicesmall");
-    if (css_devicesmall === "false") {
-        document.getElementById("datepicker").style.top = "50%";
-        document.getElementById("datepicker").style.left = "50%";
-        document.getElementById("datepicker").style.transform = 'translate(-50%, -50%)';
-        //document.getElementById("datepicker").style.transform = "translateY(-50%)";
-    }
-}
 function addsidebarcontent() {
     const sidebar = document.getElementById('calsidebar');
     sidebar.innerHTML = "";
@@ -303,46 +276,7 @@ function addsidebarcontent() {
     }
 }
 
-function dragDatePicker(elmnt) {
-    var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-    if (document.getElementById(elmnt.id + "header")) {
-        // if present, the header is where you move the DIV from:
-        document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
-    } else {
-        // otherwise, move the DIV from anywhere inside the DIV:
-        elmnt.onmousedown = dragMouseDown;
-    }
 
-    function dragMouseDown(e) {
-        e = e || window.event;
-        e.preventDefault();
-        // get the mouse cursor position at startup:
-        pos3 = e.clientX;
-        pos4 = e.clientY;
-        document.onmouseup = closeDragElement;
-        // call a function whenever the cursor moves:
-        document.onmousemove = elementDrag;
-    }
-
-    function elementDrag(e) {
-        e = e || window.event;
-        e.preventDefault();
-        // calculate the new cursor position:
-        pos1 = pos3 - e.clientX;
-        pos2 = pos4 - e.clientY;
-        pos3 = e.clientX;
-        pos4 = e.clientY;
-        // set the element's new position:
-        elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
-        elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
-    }
-
-    function closeDragElement() {
-        // stop moving when mouse button is released:
-        document.onmouseup = null;
-        document.onmousemove = null;
-    }
-}
 
 
 function fillCalendar(cdate) {
@@ -359,10 +293,11 @@ function fillCalendar(cdate) {
     let datecount = 0;
     //let monthlcount = 0;
     for (const [index, cell] of cells.entries()) {
-        cell.innerHTML = "";
+        //cell.innerHTML = "";
         if (index === (firstday + datecount)) {
             datecount++;
             cell.textContent = datecount;
+            cell.onclick = function () { showeventpopup(this); };
             if (datecount === cdate.getDate()) {
                 cell.style.backgroundColor = "silver";
             }
@@ -379,29 +314,25 @@ function fillCalendar(cdate) {
             }
         }*/
         if (month === 1) { //february
-            if (isLeap(t.getFullYear())) {
+            if (isLeap(year)) {
                 if (datecount === 29) {
                     datecount = 0;
-                    //return;
                 }
             }
             else {
                 if (datecount === 28) {
                     datecount = 0;
-                    //return;
                 }
             }
         }
         else if (month === 3 || month === 5 || month === 8 || month === 10) {
             if (datecount === 30) {
                 datecount = 0;
-                //return;
             }
         }
         else {
             if (datecount === 31) {
                 datecount = 0;
-                //return;
             }
         }
     }
@@ -424,7 +355,7 @@ function weekscount(dateobj) {
     let month = dateobj.getMonth();
     let firstday = new Date(dateobj.getFullYear(), dateobj.getMonth(), 1).getDay();
     if (month === 1) { //february
-        if (isLeap(t.getFullYear())) {
+        if (isLeap(dateobj.getFullYear())) {
             return 5;
         }
         else {

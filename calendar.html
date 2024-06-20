@@ -6,15 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Month Calendar</title>
     <link rel="stylesheet" href="calendar.css">
+    <link rel="stylesheet" href="popups.css">
     <script src="calendar.js"></script>
+    <script src="popups.js"></script>
 </head>
 
 <body onload="loadTable()">
-    <div id="datepickercontainer">
+    <div class="popupcontainer" id="datepickercontainer">
         <div id="datepicker">
-            <div id="datepickerheader">
+            <div class="popupheader" id="datepickerheader">
                 <h3>Date Picker</h3>
-                <button id="datepickerclosebutton" onclick="hidedatepicker()">X</button>
+                <button id="popupclosebutton" onclick="hidedatepicker()">X</button>
             </div>
             <label for="date">Date:</label>
             <br>
@@ -28,6 +30,20 @@
             <br>
             <input type="number" id="year" name="year" onchange="updatedate()" min="1" max="3000">
             <br>
+            <input type="button" id="datebutton" value="Go to date!" onclick="updatedate(); hidedatepicker()">
+            <br>
+        </div>
+    </div>
+    <div class="popupcontainer" id="eventpopupcontainer">
+        <div id="eventpopup">
+            <div class="popupheader" id="eventpopupheader">
+                <h3>Events</h3>
+                <button id="popupclosebutton" onclick="hideeventpopup()">X</button>
+            </div>
+            <label for="edate">Date:</label>
+            <br>
+            <input type="date" id="edate" name="edate">
+            <br>
         </div>
     </div>
     <div id="tablescontainer">
@@ -36,14 +52,18 @@
     </div>
 </body>
 <script>
-    document.getElementById("datepickerheader").addEventListener("mousedown", grabbingcursor);
-    document.getElementById("datepickerheader").addEventListener("mouseup", hoveringcursor);
-    function grabbingcursor() {
+    document.getElementById("eventpopupheader").addEventListener("mousedown", () => {
+        document.getElementById("eventpopupheader").style.cursor = "grabbing";
+    });
+    document.getElementById("eventpopupheader").addEventListener("mouseup", () => {
+        document.getElementById("eventpopupheader").style.cursor = "grab";
+    });
+    document.getElementById("datepickerheader").addEventListener("mousedown", () => {
         document.getElementById("datepickerheader").style.cursor = "grabbing";
-    }
-    function hoveringcursor() {
+    });
+    document.getElementById("datepickerheader").addEventListener("mouseup", () => {
         document.getElementById("datepickerheader").style.cursor = "grab";
-    }
+    });
 </script>
 
 <datalist id="months">

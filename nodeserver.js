@@ -19,14 +19,20 @@ app.get("/signup", (req, res) => {
 app.get("/calendar.js", (req, res) => {
     res.sendFile(path.join(__dirname, "calendar.js"));
 });
+app.get("/popups.js", (req, res) => {
+    res.sendFile(path.join(__dirname, "popups.js"));
+});
 app.get("/calendar.css", (req, res) => {
     res.sendFile(path.join(__dirname, "calendar.css"));
+});
+app.get("/popups.css", (req, res) => {
+    res.sendFile(path.join(__dirname, "popups.css"));
 });
 
 
 
 const portnumber = 3000;
-const address = "192.168.196.40";
+const address = "192.168.56.40";
 app.listen(portnumber, address, () => {
     console.log("Server running in address: "+address);
     console.log("Port: "+portnumber);

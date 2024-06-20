@@ -3,6 +3,12 @@
   --smalldevicethsize: 4.5vw;
 }
 
+* {
+  scrollbar-width: none;
+}
+*::-webkit-scrollbar {
+  width: 0px;
+}
 body {
   display: flex;
 }
@@ -84,62 +90,6 @@ body {
 }
 
 
-#datepickercontainer {
-  z-index: 9;
-  position: fixed;
-  height: 100vh;
-  width: 100vw;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-#datepickerheader {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-content: center;
-  background-color: rgb(54, 175, 255);
-}
-#datepickerheader:hover {
-  cursor: grab;
-}
-
-
-#datepicker {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding-top: 1vh;
-  padding-bottom: 1vh;
-  padding-left: 1vh;
-  padding-right: 1vh;
-  width: 25vw;
-  background: silver;
-}
-#datepicker h3 {
-  margin-top: 1%;
-  font-size: 170%;
-}
-#datepickerclosebutton {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 9%;
-  margin-top: 2%;
-  margin-bottom: 2%;
-  margin-right: 4%;
-  font-size: 180%;
-}
-#datepicker label {
-  font-size: 400%;
-}
-#datepicker input {
-  height: 6vh;
-  font-size: 5vh;
-  width: 97%;
-}
-
 @media (max-width: 768px) {
   :root {
     --devicesmall: true;
@@ -172,13 +122,5 @@ body {
     /*font-size: 2.5vw;*/
     /*font-size: 4.5vw;*/
     font-size: var(--smalldevicethsize);
-  }
-
-  #datepicker {
-    width: 70vw;
-  }
-  #datepicker input {
-    height: 4vh;
-    width: 97%;
   }
 }
