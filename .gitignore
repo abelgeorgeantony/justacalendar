@@ -1,0 +1,3 @@
+#files to be excluded from tracking
+.env
+/node_modules
