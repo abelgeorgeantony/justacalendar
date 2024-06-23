@@ -16,6 +16,8 @@ body {
   width: 100vw;
   height: 100vh;
   background-color: rgb(255, 255, 255);
+  margin-left: -10px;
+  margin-right: -10px;
 }
 
 

@@ -17,6 +17,46 @@ class myname {
         return reduced;
     }
 }
+class randomdate {
+    constructor() {
+        this.date = new Date();
+        this.info = "NO VALUES WERE GIVEN FROM SERVER!"
+        this.isready = false;
+    }
+    setRandomDate(datefromgemini, infobygemini) {
+        this.date = datefromgemini;
+        this.info = infobygemini;
+        this.isready = true;
+    }
+}
+class loadingscreen {
+    start() {
+        const screen = document.getElementById('loadingcontainer');
+        screen.style.zIndex = "9999";
+        this.animationloopid = setInterval(this.animation,400);
+        this.animationrunning = true;
+    }
+    stop() {
+        clearInterval(this.animationloopid);
+        this.animationrunning = false;
+        const screen = document.getElementById('loadingcontainer');
+        screen.style.zIndex = "-9";
+        document.getElementById('loadingtext').innerText = "+";
+    }
+    animation() {
+        const loadingtext = document.getElementById('loadingtext');
+        if (loadingtext.innerText.length !== 5) {
+            loadingtext.innerText = loadingtext.innerText + "+";
+        }
+        else {
+            loadingtext.innerText = "+";
+        }
+    }
+}
+
+
+const loading = new loadingscreen();
+let rdate = new randomdate();
 const days = [
     new myname("Sunday"),
     new myname("Monday"),
@@ -78,17 +118,20 @@ function loadTable() {
         generateWelcomeCalendar();
     }
 }
-function updatedate() {
+function goToDate() {
     const inputfields = document.getElementById("datepicker").querySelectorAll("input");
-    let monthindex;
+    let monthind;
     for (const [index, month] of months.entries()) {
         if (month.fullname === inputfields[1].value) {
-            monthindex = index;
+            monthind = index;
         }
     }
-    let good_date = false;
     let year = inputfields[2].value;
     let date = inputfields[0].value;
+    updatedate(year, monthind, date);
+}
+function updatedate(year, monthindex, date) {
+    let good_date = false;
     if (monthindex === 1) { //february
         if (isLeap(year) === true) {
             if (date >= 1 && date <= 29) {
@@ -241,6 +284,44 @@ function removelastrow() {
     }
 }
 
+
+let requestedserver = false;
+function timeHop() {
+    if (rdate.isready === true) {
+        updatedate(rdate.date.getFullYear(), rdate.date.getMonth(), rdate.date.getDate());
+        rdate.isready = false;
+        loading.stop();
+        reqTimehopFromServer();
+    }
+    else {
+        if (requestedserver === false) {
+            loading.start();
+            reqTimehopFromServer();
+            requestedserver = true;
+        }
+        else if(loading.animationrunning === false) {
+            loading.start();
+        }
+        setTimeout(timeHop, 300);
+    }
+}
+function reqTimehopFromServer() {
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            let rand_date = JSON.parse(xhttp.response);
+            rand_date.date = rand_date.date.slice(0, rand_date.date.length - 2);
+            rand_date.info = rand_date.info.slice(0, rand_date.info.length - 2);
+            console.log(rand_date);
+            rdate.setRandomDate(new Date(rand_date.date), rand_date.info);
+        }
+    };
+    xhttp.open("GET", "/reqtimehop", true);
+    xhttp.send();
+}
+
+
+
 function addsidebarcontent() {
     const sidebar = document.getElementById('calsidebar');
     sidebar.innerHTML = "";
@@ -254,7 +335,7 @@ function addsidebarcontent() {
                 cell.innerHTML = "<a href=\"javascript:showdatepicker();\">" + cellcontent[i] + "</a>";
             }
             else {
-                cell.innerHTML = "<a href=\"javascript:removelastrow();\">" + cellcontent[i] + "</a>";
+                cell.innerHTML = "<a href=\"javascript:timeHop();\">" + cellcontent[i] + "</a>";
             }
             tr.appendChild(cell);
             sidebar.appendChild(tr);
@@ -268,7 +349,7 @@ function addsidebarcontent() {
                 cell.innerHTML = "<a href=\"javascript:showdatepicker();\">" + cellcontent[i] + "</a>";
             }
             else {
-                cell.innerHTML = "<a href=\"javascript:removelastrow();\">" + cellcontent[i] + "</a>";
+                cell.innerHTML = "<a href=\"javascript:timeHop();\">" + cellcontent[i] + "</a>";
             }
             tr.appendChild(cell);
         }
@@ -339,19 +420,6 @@ function fillCalendar(cdate) {
 }
 
 function weekscount(dateobj) {
-    /*
-    31 month:
-        1st day == 0 to 4 => 5weeks
-        1st day == 5 to 6 => 6weeks
-    30 month:
-        1st day == 0 to 5 => 5weeks
-        1st day == 6 => 6weeks
-    29 month:
-        1st day == 0 to 6 => 5weeks
-    28 month:
-        1st day == 0 => 4weeks
-        1st day == 1 to 6 => 5weeks
-    */
     let month = dateobj.getMonth();
     let firstday = new Date(dateobj.getFullYear(), dateobj.getMonth(), 1).getDay();
     if (month === 1) { //february

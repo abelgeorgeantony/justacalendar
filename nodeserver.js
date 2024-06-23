@@ -7,11 +7,10 @@ const app = express();
 
 // Access your API key as an environment variable (see "Set up your API key" above)
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash"});
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "calendar.html"));
-	run();
 });
 app.get("/home", (req, res) => {
     res.sendFile(path.join(__dirname, "calendar.html"));
@@ -35,23 +34,38 @@ app.get("/popups.css", (req, res) => {
     res.sendFile(path.join(__dirname, "popups.css"));
 });
 
+app.get("/reqtimehop", async (req, res) => {
+    console.log("time hop request received");
+    const responseFromGemini = await reqtimehopFromGemini().catch((e) => {
+        console.error(e);
+        process.exit(1);
+    });
+    const jsonContent = JSON.stringify(responseFromGemini);
+    console.log(jsonContent);
+    res.send(jsonContent);
+});
+
 
 
 const portnumber = 3000;
 const address = "192.168.56.40";
 app.listen(portnumber, address, () => {
-    console.log("Server running in address: "+address);
-    console.log("Port: "+portnumber);
+    console.log("Server running in address: " + address);
+    console.log("Port: " + portnumber);
 });
 
 
-
-async function run() {
-  const prompt = "Pick a date in history VERY RANDOMLY and a fun or factual info related to it. ASSERTING THAT THE INFORMATION SHOULD BE ACCURATELY RELATED WITH THE RANDOMLY CHOSEN DATE. Format for output:<yyyy/mm/dd>;<Information relating the date>";
-
-  const result = await model.generateContent(prompt);
-  const response = await result.response;
-  const text = response.text();
-  console.log(text);
+async function reqtimehopFromGemini() {
+    let prompt = "Pick a date very randomly ranging from the year 1500 to 2024. Give output in the format:YYYY/MM/DD";
+    let rand_date = await model.generateContent(prompt);
+    rand_date = rand_date.response;
+    prompt = rand_date.text() + " is a date. Tell a fact or fun fact kind of info about this date. Don't specify the given date again just tell the info and stop. THE INFO NEEDS TO BE ACCURATE.";
+    let date_info = await model.generateContent(prompt);
+    date_info = date_info.response;
+    const responseData = {
+        date: rand_date.text(),
+        info: date_info.text()
+    }
+    return responseData;
 }
 
