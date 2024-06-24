@@ -30,26 +30,71 @@ class randomdate {
     }
 }
 class loadingscreen {
-    start() {
+    startanimation() {
         const screen = document.getElementById('loadingcontainer');
         screen.style.zIndex = "9999";
-        this.animationloopid = setInterval(this.animation,400);
+        this.animationloopid = setInterval(this.loadingTextAnimation,400);
+        this.userwasviewing = displayed_date;
+        this.dateHoppingAnimationID = setInterval(this.startDateHopping,330);
         this.animationrunning = true;
     }
-    stop() {
+    startDateHopping() {
+        if(displayed_date.getFullYear() > 1830) {
+            if(displayed_date.getMonth() > 3 ) {
+                if(displayed_date.getDate() > 7 ) {
+                    updatedate((displayed_date.getFullYear()-61),(displayed_date.getMonth()-2),displayed_date.getDate()-6);
+                }
+                else {
+                    updatedate((displayed_date.getFullYear()-52),(displayed_date.getMonth()-2),displayed_date.getDate()+20);
+                }
+            }
+            else {
+                if(displayed_date.getDate() > 7 ) {
+                    updatedate((displayed_date.getFullYear()-61),(displayed_date.getMonth()+7),displayed_date.getDate()-6);
+                }
+                else {
+                    updatedate((displayed_date.getFullYear()-52),(displayed_date.getMonth()+7),displayed_date.getDate()+20);
+                }
+            }
+        }
+        else {
+            if(displayed_date.getMonth() > 3 ) {
+                if(displayed_date.getDate() > 7 ) {
+                    updatedate((displayed_date.getFullYear()+181),(displayed_date.getMonth()-2),displayed_date.getDate()-6);
+                }
+                else {
+                    updatedate((displayed_date.getFullYear()+183),(displayed_date.getMonth()-2),displayed_date.getDate()+20);
+                }
+            }
+            else {
+                if(displayed_date.getDate() > 7 ) {
+                    updatedate((displayed_date.getFullYear()+181),(displayed_date.getMonth()+7),displayed_date.getDate()-6);
+                }
+                else {
+                    updatedate((displayed_date.getFullYear()+183),(displayed_date.getMonth()+7),displayed_date.getDate()+20);
+                }
+            }
+        }
+    }
+    stopDateHopping() {
+        clearInterval(this.dateHoppingAnimationID);
+        updatedate(this.userwasviewing.getFullYear(),this.userwasviewing.getMonth(),this.userwasviewing.getDate());
+    }
+    stopanimation() {
+        this.stopDateHopping();
         clearInterval(this.animationloopid);
         this.animationrunning = false;
         const screen = document.getElementById('loadingcontainer');
         screen.style.zIndex = "-9";
-        document.getElementById('loadingtext').innerText = "+";
+        document.getElementById('loadingtext').innerText = ">";
     }
-    animation() {
+    loadingTextAnimation() {
         const loadingtext = document.getElementById('loadingtext');
         if (loadingtext.innerText.length !== 5) {
-            loadingtext.innerText = loadingtext.innerText + "+";
+            loadingtext.innerText = loadingtext.innerText + ">";
         }
         else {
-            loadingtext.innerText = "+";
+            loadingtext.innerText = ">";
         }
     }
 }
@@ -288,19 +333,19 @@ function removelastrow() {
 let requestedserver = false;
 function timeHop() {
     if (rdate.isready === true) {
+        loading.stopanimation();
         updatedate(rdate.date.getFullYear(), rdate.date.getMonth(), rdate.date.getDate());
         rdate.isready = false;
-        loading.stop();
         reqTimehopFromServer();
     }
     else {
         if (requestedserver === false) {
-            loading.start();
+            loading.startanimation();
             reqTimehopFromServer();
             requestedserver = true;
         }
         else if(loading.animationrunning === false) {
-            loading.start();
+            loading.startanimation();
         }
         setTimeout(timeHop, 300);
     }
@@ -310,7 +355,7 @@ function reqTimehopFromServer() {
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             let rand_date = JSON.parse(xhttp.response);
-            rand_date.date = rand_date.date.slice(0, rand_date.date.length - 2);
+            //rand_date.date = rand_date.date.slice(0, rand_date.date.length - 2);
             rand_date.info = rand_date.info.slice(0, rand_date.info.length - 2);
             console.log(rand_date);
             rdate.setRandomDate(new Date(rand_date.date), rand_date.info);

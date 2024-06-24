@@ -18,13 +18,19 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: darkslategray;
-    color: beige;
     display: flex;
     justify-content: center;
     align-items: center;
     flex-direction: column;
+    background-color: rgba(0, 0, 0, 0.650);
+    color: rgb(255, 255, 255);
 }
+#loadingtext {
+    font-size: 5vw;
+    margin-top: -1%;
+    margin-bottom: -1%;
+}
+
 
 .popupheader {
     display: flex;
@@ -125,7 +131,6 @@
 }
 
 @media (max-width: 768px) {
-
     #datepicker,
     #eventpopup {
         width: 70vw;
@@ -146,5 +151,9 @@
     #datebutton {
         width: 55% !important;
         font-size: 5.5vw !important;
+    }
+
+    #loadingtext {
+        font-size: 8vh;
     }
 }
