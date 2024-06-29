@@ -33,52 +33,52 @@ class loadingscreen {
     startanimation() {
         const screen = document.getElementById('loadingcontainer');
         screen.style.zIndex = "9999";
-        this.animationloopid = setInterval(this.loadingTextAnimation,400);
+        this.animationloopid = setInterval(this.loadingTextAnimation, 900);
         this.userwasviewing = displayed_date;
-        this.dateHoppingAnimationID = setInterval(this.startDateHopping,330);
+        this.dateHoppingAnimationID = setInterval(this.startDateHopping, 330);
         this.animationrunning = true;
     }
     startDateHopping() {
-        if(displayed_date.getFullYear() > 1830) {
-            if(displayed_date.getMonth() > 3 ) {
-                if(displayed_date.getDate() > 7 ) {
-                    updatedate((displayed_date.getFullYear()-61),(displayed_date.getMonth()-2),displayed_date.getDate()-6);
+        if (displayed_date.getFullYear() > 1830) {
+            if (displayed_date.getMonth() > 3) {
+                if (displayed_date.getDate() > 7) {
+                    updatedate((displayed_date.getFullYear() - 61), (displayed_date.getMonth() - 2), displayed_date.getDate() - 6);
                 }
                 else {
-                    updatedate((displayed_date.getFullYear()-52),(displayed_date.getMonth()-2),displayed_date.getDate()+20);
+                    updatedate((displayed_date.getFullYear() - 52), (displayed_date.getMonth() - 2), displayed_date.getDate() + 20);
                 }
             }
             else {
-                if(displayed_date.getDate() > 7 ) {
-                    updatedate((displayed_date.getFullYear()-61),(displayed_date.getMonth()+7),displayed_date.getDate()-6);
+                if (displayed_date.getDate() > 7) {
+                    updatedate((displayed_date.getFullYear() - 61), (displayed_date.getMonth() + 7), displayed_date.getDate() - 6);
                 }
                 else {
-                    updatedate((displayed_date.getFullYear()-52),(displayed_date.getMonth()+7),displayed_date.getDate()+20);
+                    updatedate((displayed_date.getFullYear() - 52), (displayed_date.getMonth() + 7), displayed_date.getDate() + 20);
                 }
             }
         }
         else {
-            if(displayed_date.getMonth() > 3 ) {
-                if(displayed_date.getDate() > 7 ) {
-                    updatedate((displayed_date.getFullYear()+181),(displayed_date.getMonth()-2),displayed_date.getDate()-6);
+            if (displayed_date.getMonth() > 3) {
+                if (displayed_date.getDate() > 7) {
+                    updatedate((displayed_date.getFullYear() + 181), (displayed_date.getMonth() - 2), displayed_date.getDate() - 6);
                 }
                 else {
-                    updatedate((displayed_date.getFullYear()+183),(displayed_date.getMonth()-2),displayed_date.getDate()+20);
+                    updatedate((displayed_date.getFullYear() + 183), (displayed_date.getMonth() - 2), displayed_date.getDate() + 20);
                 }
             }
             else {
-                if(displayed_date.getDate() > 7 ) {
-                    updatedate((displayed_date.getFullYear()+181),(displayed_date.getMonth()+7),displayed_date.getDate()-6);
+                if (displayed_date.getDate() > 7) {
+                    updatedate((displayed_date.getFullYear() + 181), (displayed_date.getMonth() + 7), displayed_date.getDate() - 6);
                 }
                 else {
-                    updatedate((displayed_date.getFullYear()+183),(displayed_date.getMonth()+7),displayed_date.getDate()+20);
+                    updatedate((displayed_date.getFullYear() + 183), (displayed_date.getMonth() + 7), displayed_date.getDate() + 20);
                 }
             }
         }
     }
     stopDateHopping() {
         clearInterval(this.dateHoppingAnimationID);
-        updatedate(this.userwasviewing.getFullYear(),this.userwasviewing.getMonth(),this.userwasviewing.getDate());
+        updatedate(this.userwasviewing.getFullYear(), this.userwasviewing.getMonth(), this.userwasviewing.getDate());
     }
     stopanimation() {
         this.stopDateHopping();
@@ -154,7 +154,7 @@ function loadTable() {
     if (isSignedIn() === true) {
         document.querySelector(":root").style.setProperty("--smalldevicethsize", "4.5vw");
         const currentdate = new Date();
-        generateTableHeadings();
+        generateCalendarHeading();
         fillCalendar(currentdate);
         addsidebarcontent();
     }
@@ -227,7 +227,7 @@ function updatedate(year, monthindex, date) {
         console.log("good_date: " + good_date);
     }
 }
-function generateTableHeadings() {
+function generateCalendarHeading() {
     const table = document.getElementById('calendar');
     deletetable();
     table.innerHTML = "";
@@ -239,15 +239,11 @@ function generateTableHeadings() {
         tr.appendChild(th);
     }
     table.appendChild(tr); // Add header row to table
-
-    /*for (let week = 0; week < weeks; week++) {
-        addalastrow();
-    }*/
 }
 
 function generateWelcomeCalendar() {
     const table = document.getElementById('calendar');
-    generateTableHeadings();
+    generateCalendarHeading();
 
     const innhtml = [
         "<a href=\"/home\">Home</a>",
@@ -344,7 +340,7 @@ function timeHop() {
             reqTimehopFromServer();
             requestedserver = true;
         }
-        else if(loading.animationrunning === false) {
+        else if (loading.animationrunning === false) {
             loading.startanimation();
         }
         setTimeout(timeHop, 300);
@@ -368,20 +364,24 @@ function reqTimehopFromServer() {
 
 
 function addsidebarcontent() {
-    const sidebar = document.getElementById('calsidebar');
+    addsidebar1content();
+    addsidebar2content();
+}
+function addsidebar2content() {
+    const sidebar = document.getElementById('calsidebar2');
     sidebar.innerHTML = "";
     const css_devicesmall = getComputedStyle(document.querySelector(':root')).getPropertyValue("--devicesmall");
-    const cellcontent = [displayed_date.getDate(), months[displayed_date.getMonth()].shortname, displayed_date.getFullYear(), "Time<br>Hop"];
+    const cellcontent = [
+        "<a href=\"javascript:showdatepicker();\" style=\"background-color: rgb(0, 182, 67)\">" + displayed_date.getDate() + "</a>",
+        "<a href=\"javascript:showdatepicker();\" style=\"background-color: rgb(0, 182, 67)\">" + months[displayed_date.getMonth()].shortname + "</a>",
+        "<a href=\"javascript:showdatepicker();\" style=\"background-color: rgb(0, 182, 67)\">" + displayed_date.getFullYear() + "</a>",
+        "<a href=\"javascript:timeHop();\" style=\"background-color: rgb(0, 160, 246);\">" + "Time<br>Hop" + "</a>"
+    ];
     if (css_devicesmall === "false") {
         for (let i = 0; i < 4; i++) {
             const tr = document.createElement('tr');
             const cell = document.createElement('td');
-            if (i != 3) {
-                cell.innerHTML = "<a href=\"javascript:showdatepicker();\">" + cellcontent[i] + "</a>";
-            }
-            else {
-                cell.innerHTML = "<a href=\"javascript:timeHop();\">" + cellcontent[i] + "</a>";
-            }
+            cell.innerHTML = cellcontent[i];
             tr.appendChild(cell);
             sidebar.appendChild(tr);
         }
@@ -390,19 +390,99 @@ function addsidebarcontent() {
         const tr = document.createElement('tr');
         for (let i = 0; i < 4; i++) {
             const cell = document.createElement('td');
-            if (i != 3) {
-                cell.innerHTML = "<a href=\"javascript:showdatepicker();\">" + cellcontent[i] + "</a>";
-            }
-            else {
-                cell.innerHTML = "<a href=\"javascript:timeHop();\">" + cellcontent[i] + "</a>";
-            }
+            cell.innerHTML = cellcontent[i];
+            tr.appendChild(cell);
+        }
+        sidebar.appendChild(tr);
+    }
+}
+function addsidebar1content() {
+    const sidebar = document.getElementById('calsidebar1');
+    sidebar.innerHTML = "";
+    const css_devicesmall = getComputedStyle(document.querySelector(':root')).getPropertyValue("--devicesmall");
+    const cellcontent = [
+        "<a href=\"javascript:();\" id=\"aichatbtn\"><img class=\"sidebarimgs\" id=\"aichatimg\" alt=\"AI Chat\">" + "</a>",
+        "<a href=\"javascript:();\" id=\"aichatbtn\"><img class=\"sidebarimgs\" id=\"aichatimg\" alt=\"AI Chat\">" + "</a>",
+        "<a href=\"javascript:openAIchat();\" id=\"aichatbtn\"><img class=\"sidebarimgs\" id=\"aichatimg\" alt=\"AI Chat\">" + "</a>",
+        "<a href=\"javascript:openAccountandSettings();\" id=\"useraccountbtn\"><img class=\"sidebarimgs\" id=\"useraccountimg\" alt=\"User Account\">" + "</a>"
+    ];
+    if (css_devicesmall === "false") {
+        for (let i = 0; i < 4; i++) {
+            const tr = document.createElement('tr');
+            const cell = document.createElement('td');
+            cell.innerHTML = cellcontent[i];
+            tr.appendChild(cell);
+            sidebar.appendChild(tr);
+        }
+    }
+    else {
+        const tr = document.createElement('tr');
+        for (let i = 0; i < 4; i++) {
+            const cell = document.createElement('td');
+            cell.innerHTML = cellcontent[i];
             tr.appendChild(cell);
         }
         sidebar.appendChild(tr);
     }
 }
 
+function openAccountandSettings() {
+    const table = document.getElementById('calendar');
+    openWindow(table, "Account and Settings");
+}
+function openAIchat() {
+    const table = document.getElementById('calendar');
+    openWindow(table, "AI Chat(Gemini)");
+}
+function openWindow(table, headingname) {
+    const datebuttonsbar = document.getElementById('calsidebar2');
+    const css_devicesmall = getComputedStyle(document.querySelector(':root')).getPropertyValue("--devicesmall");
+    if (css_devicesmall === "false") {
+        datebuttonsbar.innerHTML = "<tr><td>Close</td></tr><tr><td>Window</td></tr><tr><td>To</td></tr><tr><td>Use</td></tr>"
+    }
+    else {
+        datebuttonsbar.innerHTML = "<tr><td>Close</td><td>Window</td><td>To</td><td>Use</td></tr>"
+    }
+    deletetable();
+    setWindowHeader(table, headingname);
+    setWindowBody(table);
+}
+function closeWindow() {
+    generateCalendarHeading();
+    fillCalendar(displayed_date);
+    addsidebar2content();
+}
+function setWindowHeader(table, headingname) {
+    while(table.children.length !== 0){
+        table.removeChild(table.children[0]);
+    }
+    const heading = document.createElement('th');
+    const title = document.createElement('p');
+    const closebutton = document.createElement('button');
 
+    heading.classList.add("calendarwindowheader");
+    title.innerText = headingname;
+    title.classList.add("calendarwindowheading");
+    closebutton.innerText = "X";
+    closebutton.classList.add("calendarwindowclosebutton");
+    closebutton.onclick = function () { closeWindow() };
+    heading.style = "width: 100%; padding-right: 0vmin; padding-left: 0vmin; border-left-width: 0px; border-right-width: 0px; border-top-width: 1px; margin-left: 0px;";
+    
+    heading.appendChild(title);
+    heading.appendChild(closebutton);
+    table.appendChild(heading);
+}
+function setWindowBody(table) {
+    const windowbody = document.createElement('tr');
+    const wbodydiv = document.createElement('div');
+
+    wbodydiv.innerHTML = "Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>";
+    wbodydiv.style = "overflow:scroll; height: 100%; width: 100%;";
+    windowbody.classList.add("windowbody");
+
+    windowbody.appendChild(wbodydiv);
+    table.appendChild(windowbody);
+}
 
 
 function fillCalendar(cdate) {
@@ -417,9 +497,7 @@ function fillCalendar(cdate) {
     const table = document.getElementById('calendar');
     const cells = table.querySelectorAll('TD'); // assigning td to cells
     let datecount = 0;
-    //let monthlcount = 0;
     for (const [index, cell] of cells.entries()) {
-        //cell.innerHTML = "";
         if (index === (firstday + datecount)) {
             datecount++;
             cell.textContent = datecount;
@@ -498,7 +576,5 @@ function weekscount(dateobj) {
     }
 }
 function isLeap(year) {
-    // A year is a leap year if it is divisible by 4 but not by 100,
-    // or if it is divisible by 400.
     return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
 }

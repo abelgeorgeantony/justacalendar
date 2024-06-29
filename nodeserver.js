@@ -33,6 +33,18 @@ app.get("/calendar.css", (req, res) => {
 app.get("/popups.css", (req, res) => {
     res.sendFile(path.join(__dirname, "popups.css"));
 });
+app.get("/images/user_account_icon_black.png", (req, res) => {
+    res.sendFile(path.join(__dirname, "images/user_account_icon_black.png"));
+});
+app.get("/images/user_account_icon_white.png", (req, res) => {
+    res.sendFile(path.join(__dirname, "images/user_account_icon_white.png"));
+});
+app.get("/images/aichat_icon_black.png", (req, res) => {
+    res.sendFile(path.join(__dirname, "images/aichat_icon_black.png"));
+});
+app.get("/images/aichat_icon_white.png", (req, res) => {
+    res.sendFile(path.join(__dirname, "/images/aichat_icon_white.png"));
+});
 
 app.get("/reqtimehop", async (req, res) => {
     console.log("time hop request received");

@@ -25,11 +25,13 @@
     background-color: rgba(15, 121, 140, 0.65);
     color: rgb(255, 221, 180);
 }
+
 #loadingtext {
     font-size: 7vw;
     margin-top: -1%;
     margin-bottom: -1%;
 }
+
 #loadingcontainer h1 {
     -webkit-text-stroke: 2px black;
     font-size: 4vw;
@@ -86,7 +88,7 @@
 }
 
 #datepicker label {
-    font-size: 400%;
+    font-size: 200%;
 }
 
 #datepicker input {
@@ -125,7 +127,7 @@
 }
 
 #eventpopup label {
-    font-size: 400%;
+    font-size: 200%;
 }
 
 #eventpopup input {
@@ -134,10 +136,12 @@
     width: 97%;
 }
 
+
 @media (max-width: 768px) {
+
     #datepicker,
     #eventpopup {
-        width: 70vw;
+        width: 72vw;
     }
 
     #datepicker label,
@@ -160,6 +164,7 @@
     #loadingtext {
         font-size: 15vh;
     }
+
     #loadingcontainer h1 {
         font-size: 7vh;
     }
