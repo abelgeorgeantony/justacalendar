@@ -1,3 +1,4 @@
 #files to be excluded from tracking
+.git_push_token
 .env
 /node_modules

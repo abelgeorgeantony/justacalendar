@@ -2,12 +2,20 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 require('dotenv').config();
 const url = require("url");
 const path = require("path");
+const { MongoClient, ServerApiVersion } = require("mongodb");
 const express = require("express");
 const app = express();
+
 
 // Access your API key as an environment variable (see "Set up your API key" above)
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+
+// Create a MongoClient with a MongoClientOptions object to set the Stable API version
+const uri = "mongodb://127.0.0.1:27017/";
+const mongoclient = new MongoClient(uri);
+
 
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "calendar.html"));
@@ -46,6 +54,14 @@ app.get("/images/aichat_icon_white.png", (req, res) => {
     res.sendFile(path.join(__dirname, "/images/aichat_icon_white.png"));
 });
 
+
+app.post("/signupsubmit", (req, res) => {
+    console.log("Request recieved");
+    mongotest();
+    res.sendFile(path.join(__dirname, "calendar.html"));
+});
+
+
 app.get("/reqtimehop", async (req, res) => {
     console.log("time hop request received");
     const responseFromGemini = await reqtimehopFromGemini().catch((e) => {
@@ -81,3 +97,15 @@ async function reqtimehopFromGemini() {
     return responseData;
 }
 
+
+async function mongotest() {
+  try {
+    mongoclient.connect();
+    const database = mongoclient.db('sample_mflix');
+    const movies = database.collection('movies');
+    await movies.insertOne({dsfs:"sdfs"});
+  } finally {
+    // Ensures that the client will close when you finish/error
+    await mongoclient.close();
+  }
+}

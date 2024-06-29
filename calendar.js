@@ -145,8 +145,8 @@ function isSignedIn() {
     if (getCookie("authorised") === "true") {
         return true;
     }
-    //return false;
-    return true;
+    return false;
+    //return true;
 }
 
 
@@ -251,8 +251,8 @@ function generateWelcomeCalendar() {
         "<a href=\"/about\">Help/<br>Support</a>",
         "<a href=\"/about\">About</a>",
         "<a href=\"/about\">About</a>",
-        "<a href=\"/about\">About</a>",
-        "<a href=\"/signup\">Sign Up</a><br><a href=\"/login\">/Log In</a>"
+        "<a href=\"/signup\">Sign Up</a>",
+        "<a href=\"/login\">Log In</a>"
     ];
     const t_headings = table.querySelectorAll('TH');
     for (const [index, t_heading] of t_headings.entries()) {
@@ -296,7 +296,6 @@ function generateWelcomeCalendar() {
             cell.textContent = "";
         }
     }
-    //styleCalendar();
 }
 
 function deletetable() {
@@ -434,6 +433,7 @@ function openAIchat() {
     const table = document.getElementById('calendar');
     openWindow(table, "AI Chat(Gemini)");
 }
+
 function openWindow(table, headingname) {
     const datebuttonsbar = document.getElementById('calsidebar2');
     const css_devicesmall = getComputedStyle(document.querySelector(':root')).getPropertyValue("--devicesmall");
