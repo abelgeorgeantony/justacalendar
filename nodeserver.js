@@ -5,6 +5,9 @@ const path = require("path");
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const express = require("express");
 const app = express();
+const bodyParser = require('body-parser')
+const jsonParser = bodyParser.json();
+const urlencodedParser = bodyParser.urlencoded({ extended: false });
 
 
 // Access your API key as an environment variable (see "Set up your API key" above)
@@ -18,52 +21,98 @@ const mongoclient = new MongoClient(uri);
 
 
 app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "calendar.html"));
+    res.sendFile(path.join(__dirname, "assets/html/calendar.html"));
 });
 app.get("/home", (req, res) => {
-    res.sendFile(path.join(__dirname, "calendar.html"));
+    res.sendFile(path.join(__dirname, "assets/html/calendar.html"));
 });
 app.get("/login", (req, res) => {
-    res.sendFile(path.join(__dirname, "login.html"));
+    res.sendFile(path.join(__dirname, "assets/html/login.html"));
 });
 app.get("/signup", (req, res) => {
-    res.sendFile(path.join(__dirname, "signup.html"));
+    res.sendFile(path.join(__dirname, "assets/html/signup.html"));
 });
 app.get("/calendar.js", (req, res) => {
-    res.sendFile(path.join(__dirname, "calendar.js"));
+    res.sendFile(path.join(__dirname, "assets/js/calendar.js"));
 });
 app.get("/popups.js", (req, res) => {
-    res.sendFile(path.join(__dirname, "popups.js"));
+    res.sendFile(path.join(__dirname, "assets/js/popups.js"));
+});
+app.get("/signup.js", (req, res) => {
+    res.sendFile(path.join(__dirname, "assets/js/signup.js"));
 });
 app.get("/calendar.css", (req, res) => {
-    res.sendFile(path.join(__dirname, "calendar.css"));
+    res.sendFile(path.join(__dirname, "assets/css/calendar.css"));
 });
 app.get("/popups.css", (req, res) => {
-    res.sendFile(path.join(__dirname, "popups.css"));
+    res.sendFile(path.join(__dirname, "assets/css/popups.css"));
 });
-app.get("/images/user_account_icon_black.png", (req, res) => {
-    res.sendFile(path.join(__dirname, "images/user_account_icon_black.png"));
+app.get("/signup.css", (req, res) => {
+    res.sendFile(path.join(__dirname, "assets/css/signup.css"));
 });
-app.get("/images/user_account_icon_white.png", (req, res) => {
-    res.sendFile(path.join(__dirname, "images/user_account_icon_white.png"));
+app.get("/user_account_icon_black.png", (req, res) => {
+    res.sendFile(path.join(__dirname, "assets/images/user_account_icon_black.png"));
 });
-app.get("/images/aichat_icon_black.png", (req, res) => {
-    res.sendFile(path.join(__dirname, "images/aichat_icon_black.png"));
+app.get("/user_account_icon_white.png", (req, res) => {
+    res.sendFile(path.join(__dirname, "assets/images/user_account_icon_white.png"));
 });
-app.get("/images/aichat_icon_white.png", (req, res) => {
-    res.sendFile(path.join(__dirname, "/images/aichat_icon_white.png"));
+app.get("/aichat_icon_black.png", (req, res) => {
+    res.sendFile(path.join(__dirname, "assets/images/aichat_icon_black.png"));
+});
+app.get("/aichat_icon_white.png", (req, res) => {
+    res.sendFile(path.join(__dirname, "assets/images/aichat_icon_white.png"));
+});
+app.get("/eye_black.png", (req, res) => {
+    res.sendFile(path.join(__dirname, "assets/images/eye_black.png"));
+});
+app.get("/restricted_eye_black.png", (req, res) => {
+    res.sendFile(path.join(__dirname, "assets/images/restricted_eye_black.png"));
 });
 
 
-app.post("/signupsubmit", (req, res) => {
+
+app.post("/signupsubmit", urlencodedParser, async (req, res) => {
     console.log("Request recieved");
-    mongotest();
-    res.sendFile(path.join(__dirname, "calendar.html"));
+    console.log(req.body);
+    const username = req.body.username;
+    const password = req.body.password;
+    const email = req.body.email;
+    try {
+        await mongoclient.connect();
+        const userscollection = mongoclient.db("jac").collection("users");
+        const result = await userscollection.insertOne({ "username": username, "password": password, "email": email })
+        console.log(result);
+        if (result === null) {
+            res.status(200).send({ "created": false });
+        }
+        else {
+            const authToken = loginUser(username, password);
+            res.status(200).send({ "created": true, "authToken": authToken });
+        }
+    } finally {
+        await mongoclient.close();
+    }
 });
 
 
+app.post("/searchusername", urlencodedParser, async (req, res) => {
+    const unametosearch = req.body.uname;
+    try {
+        await mongoclient.connect();
+        const userscollection = mongoclient.db("jac").collection("users");
+        const result = await userscollection.findOne({ "username": unametosearch }, { _id: 0, username: 1, password: 0, email: 0 });
+        console.log(result);
+        if (result === null) {
+            res.status(200).send({ "available": true });
+        }
+        else {
+            res.status(200).send({ "available": false });
+        }
+    } finally {
+        await mongoclient.close();
+    }
+});
 app.get("/reqtimehop", async (req, res) => {
-    console.log("time hop request received");
     const responseFromGemini = await reqtimehopFromGemini().catch((e) => {
         console.error(e);
         process.exit(1);
@@ -98,14 +147,24 @@ async function reqtimehopFromGemini() {
 }
 
 
-async function mongotest() {
-  try {
-    mongoclient.connect();
-    const database = mongoclient.db('sample_mflix');
-    const movies = database.collection('movies');
-    await movies.insertOne({dsfs:"sdfs"});
-  } finally {
-    // Ensures that the client will close when you finish/error
-    await mongoclient.close();
-  }
+function loginUser(uname, pword) {
+
+    let freshtoken;
+    return freshtoken;
 }
+function checkTokenAuthenticity(token) {
+}
+
+
+
+/*async function mongotest() {
+    try {
+        await mongoclient.connect();
+        const database = mongoclient.db('sample_mflix');
+        const movies = database.collection('movies');
+        await movies.insertOne({ dsfs: "sdfs" });
+    } finally {
+        // Ensures that the client will close when you finish/error
+        await mongoclient.close();
+    }
+}*/

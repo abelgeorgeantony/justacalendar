@@ -111,19 +111,19 @@ body {
 }
 
 #useraccountimg {
-  content: url("/images/user_account_icon_black.png");
+  content: url("/user_account_icon_black.png");
 }
 
 #useraccountbtn:hover #useraccountimg {
-  content: url("/images/user_account_icon_white.png");
+  content: url("/user_account_icon_white.png");
 }
 
 #aichatimg {
-  content: url("/images/aichat_icon_black.png");
+  content: url("/aichat_icon_black.png");
 }
 
 #aichatbtn:hover #aichatimg {
-  content: url("/images/aichat_icon_white.png");
+  content: url("/aichat_icon_white.png");
 }
 
 

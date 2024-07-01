@@ -1,0 +1,49 @@
+form {
+    display: grid;
+}
+
+.formContainer {
+    display: flex;
+    flex-direction: column;
+    justify-self: center;
+    width: min-content;
+}
+.formContainer h1 {
+    width: max-content;
+}
+
+.passhidebutton img {
+    margin-top: -3px;
+    padding-top: 0px;
+    margin-bottom: -6px;
+    margin-left: -4px;
+    margin-right: -5px;
+    height: 2vw;
+    width: 2vw;
+}
+
+.passhidebutton {
+    margin-left: 1vw;
+    height: max-content;
+}
+
+.passcontainers {
+    display: flex;
+    flex-direction: row;
+    align-items: end;
+}
+
+#usernamecontainer,
+#emailcontainer,
+#passwordcontainer,
+#repeatpasswordcontainer {
+    margin-bottom: 2vw;
+}
+
+
+@media (max-width: 768px) {
+    .passhidebutton img {
+        height: 7vw;
+        width: 7vw
+    }
+}
