@@ -126,32 +126,49 @@ const months = [
     new myname("December")
 ];
 let displayed_date = new Date();
+
+
 function getCookie(nametofind) {
-    //document.cookie = "cookie3=value1; SameSite=Strict; path=/";
-    //document.cookie = "username2test2; expires=Thu, 18 Dec 2023 12:00:00 UTC; path=/";
     const cookies = document.cookie.split('; ');
-    console.log(document.cookie);
+    let cookievalue;
     //const cookieMap = {};
     cookies.forEach(cookie => {
         const [name, value] = cookie.split('=');
-        //cookieMap[name] = value;
-        console.log("Name:" + name + " Value:" + value);
         if (nametofind === name) {
-            return value;
+            cookievalue = value;
         }
     });
+    return cookievalue;
 }
-function isSignedIn() {
-    if (getCookie("authorised") === "true") {
-        return true;
+
+var xhttpcheck = new XMLHttpRequest();
+function isLoggedIn(loadPage) {
+    const username = getCookie("username");
+    const authToken = getCookie("authToken");
+    if (username !== undefined || authToken !== undefined) {
+        console.log("entered check");
+        if (xhttpcheck.readyState === 0 || xhttpcheck.readyState === 4) {
+            xhttpcheck.open("POST", "/checktokenauthenticity", true);
+            xhttpcheck.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            xhttpcheck.send("username=" + username + "&authToken=" + authToken);
+        }
+        xhttpcheck.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                const result = JSON.parse(xhttpcheck.response);
+                console.log("Authentic:" + result.authentic);
+                loadPage(result.authentic);
+            }
+        };
     }
-    return false;
-    //return true;
+    else {
+        console.log("Cookies don't exist");
+        loadPage(false);
+    }
 }
 
 
-function loadTable() {
-    if (isSignedIn() === true) {
+function loadTable(check) {
+    if (check === true) {
         document.querySelector(":root").style.setProperty("--smalldevicethsize", "4.5vw");
         const currentdate = new Date();
         generateCalendarHeading();
@@ -401,7 +418,7 @@ function addsidebar1content() {
     const css_devicesmall = getComputedStyle(document.querySelector(':root')).getPropertyValue("--devicesmall");
     const cellcontent = [
         "<a href=\"javascript:();\" id=\"aichatbtn\"><img class=\"sidebarimgs\" id=\"aichatimg\" alt=\"AI Chat\">" + "</a>",
-        "<a href=\"javascript:();\" id=\"aichatbtn\"><img class=\"sidebarimgs\" id=\"aichatimg\" alt=\"AI Chat\">" + "</a>",
+        "<a href=\"javascript:openEvents();\" id=\"eventslistbtn\"><img class=\"sidebarimgs\" id=\"eventslistimg\" alt=\"Events List\">" + "</a>",
         "<a href=\"javascript:openAIchat();\" id=\"aichatbtn\"><img class=\"sidebarimgs\" id=\"aichatimg\" alt=\"AI Chat\">" + "</a>",
         "<a href=\"javascript:openAccountandSettings();\" id=\"useraccountbtn\"><img class=\"sidebarimgs\" id=\"useraccountimg\" alt=\"User Account\">" + "</a>"
     ];
@@ -426,15 +443,24 @@ function addsidebar1content() {
 }
 
 function openAccountandSettings() {
-    const table = document.getElementById('calendar');
-    openWindow(table, "Account and Settings");
+    const content = document.createElement("div");
+    const name = document.createElement("div");
+    name.innerHTML = "Nick Name<br>@"+getCookie("username");
+
+    content.appendChild(name);
+    openWindow("Account and Settings", content);
 }
 function openAIchat() {
-    const table = document.getElementById('calendar');
-    openWindow(table, "AI Chat(Gemini)");
+    const content = document.createElement("div");
+    openWindow("AI Chat(Gemini)", content);
+}
+function openEvents() {
+    const content = document.createElement("div");
+    openWindow("Events", content);
 }
 
-function openWindow(table, headingname) {
+function openWindow(headingname, content) {
+    const table = document.getElementById('calendar');
     const datebuttonsbar = document.getElementById('calsidebar2');
     const css_devicesmall = getComputedStyle(document.querySelector(':root')).getPropertyValue("--devicesmall");
     if (css_devicesmall === "false") {
@@ -445,7 +471,7 @@ function openWindow(table, headingname) {
     }
     deletetable();
     setWindowHeader(table, headingname);
-    setWindowBody(table);
+    setWindowBody(table, content);
 }
 function closeWindow() {
     generateCalendarHeading();
@@ -453,7 +479,7 @@ function closeWindow() {
     addsidebar2content();
 }
 function setWindowHeader(table, headingname) {
-    while(table.children.length !== 0){
+    while (table.children.length !== 0) {
         table.removeChild(table.children[0]);
     }
     const heading = document.createElement('th');
@@ -467,16 +493,16 @@ function setWindowHeader(table, headingname) {
     closebutton.classList.add("calendarwindowclosebutton");
     closebutton.onclick = function () { closeWindow() };
     heading.style = "width: 100%; padding-right: 0vmin; padding-left: 0vmin; border-left-width: 0px; border-right-width: 0px; border-top-width: 1px; margin-left: 0px;";
-    
+
     heading.appendChild(title);
     heading.appendChild(closebutton);
     table.appendChild(heading);
 }
-function setWindowBody(table) {
+function setWindowBody(table, content) {
     const windowbody = document.createElement('tr');
     const wbodydiv = document.createElement('div');
 
-    wbodydiv.innerHTML = "Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>Msfsfs<br>";
+    wbodydiv.innerHTML = content.innerHTML;
     wbodydiv.style = "overflow:scroll; height: 100%; width: 100%;";
     windowbody.classList.add("windowbody");
 

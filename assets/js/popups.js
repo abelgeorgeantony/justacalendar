@@ -1,3 +1,16 @@
+function getCookie(nametofind) {
+    const cookies = document.cookie.split('; ');
+    let cookievalue;
+    cookies.forEach(cookie => {
+        const [name, value] = cookie.split('=');
+        if (nametofind === name) {
+            cookievalue = value;
+        }
+    });
+    return cookievalue;
+}
+
+
 function showdatepicker() {
     const inputfields = document.getElementById("datepicker").querySelectorAll("input");
     inputfields[0].value = displayed_date.getDate();
@@ -23,27 +36,30 @@ function hidedatepicker() {
         //document.getElementById("datepicker").style.transform = "translateY(-50%)";
     }
 }
-function showeventpopup(element) {
+
+let clickeddate;
+function showeventpopup(element, body) {
     console.log(element);
-    let clickeddate = displayed_date.getFullYear();
+    clickeddate = displayed_date.getFullYear();
     if (displayed_date.getMonth() < 9) {
-        clickeddate = clickeddate+"-0"+(displayed_date.getMonth() + 1);
+        clickeddate = clickeddate + "-0" + (displayed_date.getMonth() + 1);
     }
     else {
-        clickeddate = clickeddate+"-"+(displayed_date.getMonth() + 1);
+        clickeddate = clickeddate + "-" + (displayed_date.getMonth() + 1);
     }
     if (Number(element.textContent) < 10) {
-        clickeddate = clickeddate+"-0"+element.textContent;
+        clickeddate = clickeddate + "-0" + element.textContent;
     }
     else {
-        clickeddate = clickeddate+"-"+element.textContent;
+        clickeddate = clickeddate + "-" + element.textContent;
     }
     console.log(clickeddate);
-    document.getElementById("edate").value = clickeddate;
+    switchtoEventList();
     dragPopUp(document.getElementById("eventpopup"));
     document.getElementById("eventpopupcontainer").style.zIndex = "9";
 }
 function hideeventpopup() {
+    document.getElementById("eventpopupbody").innerHTML = "";
     document.getElementById("eventpopupcontainer").style.zIndex = "-1";
     document.getElementById("eventpopup").style.top = "50%";
     document.getElementById("eventpopup").style.left = "50%";
@@ -88,5 +104,135 @@ function dragPopUp(elmnt) {
         // stop moving when mouse button is released:
         document.onmouseup = null;
         document.onmousemove = null;
+    }
+}
+
+
+function switchtoEventList() {
+    closeEventsDropdown();
+    document.getElementById("eventsdropbtn").innerHTML = "Events&#11167;";
+    document.getElementById("eventsDropdown").children[0].innerText = "Add Event";
+    document.getElementById("eventsDropdown").children[0].href = "javascript:switchtoEventAdder();";
+    document.getElementById("eventsDropdown").children[1].innerText = "Info by AI";
+    document.getElementById("eventsDropdown").children[1].href = "javascript:switchtoInfoByAI();";
+    
+    reqEventFromDB(clickeddate, 0);
+}
+function switchtoEventAdder() {
+    closeEventsDropdown();
+    document.getElementById("eventsdropbtn").innerHTML = "Add Event&#11167;";
+    document.getElementById("eventsDropdown").children[0].innerText = "Events";
+    document.getElementById("eventsDropdown").children[0].href = "javascript:switchtoEventList();";
+    document.getElementById("eventsDropdown").children[1].innerText = "Info by AI";
+    document.getElementById("eventsDropdown").children[1].href = "javascript:switchtoInfoByAI();";
+
+    const eventdateinputtitle = document.createElement("h4");
+    const eventdateinput = document.createElement("input");
+    const eventnameinputtitle = document.createElement("h4");
+    const eventnameinput = document.createElement("input");
+    const eventdescriptiontitle = document.createElement("h4");
+    const eventdescription = document.createElement("textarea");
+    const addeventbtn = document.createElement("button");
+
+    eventdateinputtitle.innerText = "Date:";
+    eventdateinputtitle.classList.add("eventinputfieldtitle");
+    eventdateinput.type = "date";
+    eventdateinput.value = clickeddate;
+    eventdateinput.classList.add("eventinputfield");
+
+    eventnameinputtitle.innerText = "Event Name:";
+    eventnameinputtitle.classList.add("eventinputfieldtitle");
+    eventnameinput.type = "text";
+    eventnameinput.classList.add("eventinputfield");
+
+    eventdescriptiontitle.innerText = "Event Description:";
+    eventdescriptiontitle.classList.add("eventinputfieldtitle");
+    eventdescription.type = "text";
+    eventdescription.rows = 4;
+    eventdescription.classList.add("eventinputfield");
+
+    addeventbtn.innerText = "Add the Event!";
+    addeventbtn.onclick = function () { addEventToDB(); };
+
+    document.getElementById("eventpopupbody").appendChild(eventdateinputtitle);
+    document.getElementById("eventpopupbody").appendChild(eventdateinput);
+    document.getElementById("eventpopupbody").appendChild(eventnameinputtitle);
+    document.getElementById("eventpopupbody").appendChild(eventnameinput);
+    document.getElementById("eventpopupbody").appendChild(eventdescriptiontitle);
+    document.getElementById("eventpopupbody").appendChild(eventdescription);
+    document.getElementById("eventpopupbody").appendChild(addeventbtn);
+}
+function switchtoInfoByAI() {
+    closeEventsDropdown();
+    document.getElementById("eventsdropbtn").innerHTML = "Info by AI&#11167;";
+    document.getElementById("eventsDropdown").children[0].innerText = "Events";
+    document.getElementById("eventsDropdown").children[0].href = "javascript:switchtoEventList();";
+    document.getElementById("eventsDropdown").children[1].innerText = "Add Event";
+    document.getElementById("eventsDropdown").children[1].href = "javascript:switchtoEventAdder();";
+}
+function showEventsDropdown() {
+    document.getElementById("eventsDropdown").classList.toggle("show");
+}
+function closeEventsDropdown() {
+    document.getElementById("eventpopupbody").innerHTML = "";
+    if (document.getElementById("eventsDropdown").classList.contains("show")) {
+        document.getElementById("eventsDropdown").classList.remove("show");
+    }
+}
+
+
+var xhttpeventsubmit = new XMLHttpRequest();
+function addEventToDB() {
+    let dateofevent = document.getElementById("eventpopupbody").children[1].value;
+    let nameofevent = document.getElementById("eventpopupbody").children[3].value;
+    let descriptionofevent = document.getElementById("eventpopupbody").children[5].value;
+
+    if (xhttpeventsubmit.readyState === 0 || xhttpeventsubmit.readyState === 4) {
+        startTopBarAnimation(document.getElementById("eventpopupbody").children[document.getElementById("eventpopupbody").children.length - 1]);
+        xhttpeventsubmit.open("POST", "/eventsubmit", true);
+        xhttpeventsubmit.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xhttpeventsubmit.send("username=" + getCookie("username") + "&date=" + dateofevent + "&name=" + nameofevent + "&description=" + descriptionofevent);
+    }
+    xhttpeventsubmit.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            const result = JSON.parse(xhttpeventsubmit.response);
+            if (result.eventadded === true) {
+                stopTopBarAnimation(document.getElementById("eventpopupbody").children[document.getElementById("eventpopupbody").children.length - 1]);
+            }
+        }
+    };
+
+}
+
+var xhttpeventrequest = new XMLHttpRequest();
+function reqEventFromDB(dateofevent, lastreceivedeventid) {
+    
+    if (xhttpeventrequest.readyState === 0 || xhttpeventrequest.readyState === 4) {
+        //startTopBarAnimation();
+        xhttpeventrequest.open("POST", "/eventrequest", true);
+        xhttpeventrequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xhttpeventrequest.send("username=" + getCookie("username") + "&date=" + dateofevent + "&lastreceivedeventid=" + lastreceivedeventid);
+    }
+    xhttpeventrequest.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            const result = JSON.parse(xhttpeventrequest.response);
+        }
+    };
+
+}
+
+
+function startTopBarAnimation(element) {
+    if(element !== null) {
+        element.setAttribute("disabled", "true");
+    }
+    document.querySelector(".eventloadingcontainer").style.zIndex = "99";
+    document.querySelector(".loadingrunner").style.animationIterationCount = "infinite";
+}
+function stopTopBarAnimation(element) {
+    document.querySelector(".eventloadingcontainer").style.zIndex = "-99";
+    document.querySelector(".loadingrunner").style.animationIterationCount = "0";
+    if(element !== null) {
+        element.removeAttribute("disabled");
     }
 }

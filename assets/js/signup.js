@@ -1,3 +1,37 @@
+class myname {
+    constructor(fulln) {
+        this.fullname = fulln;
+        this.shortname = this.reducename(3);
+    }
+    reducename(length) {
+        if (length === (this.fullname.length - 1)) {
+            return this.fullname;;
+        }
+        else if (length === this.fullname.length || length > this.fullname.length || length === 0) {
+            console.log("Trying to shorten name failed! Invalid length given to shorten");
+        }
+        let reduced = "";
+        for (let i = 0; i < length; i++) {
+            reduced = reduced + this.fullname[i];
+        }
+        return reduced;
+    }
+}
+const months = [
+    new myname("January"),
+    new myname("February"),
+    new myname("March"),
+    new myname("April"),
+    new myname("May"),
+    new myname("June"),
+    new myname("July"),
+    new myname("August"),
+    new myname("September"),
+    new myname("October"),
+    new myname("November"),
+    new myname("December")
+];
+
 class inputfield {
     constructor(name) {
         this.id = name + "id";
@@ -102,6 +136,7 @@ function val_passwordfields() {
 }
 let invalid_char = null;
 function val_password() {
+    
     const invalid_pass = /[^0-9a-zA-Z_]/g;
     const input = document.getElementById(passwordobj.id);
     if (invalid_pass.test(input.value) === true) {
@@ -242,7 +277,15 @@ function submitDetails(username, password, email) {
             let account = JSON.parse(xhttpsubmit.response);
             if (account.created === true) {
                 const authToken = account.authToken;
-                //create cookie and store token for later use
+                console.log("Token: " + authToken);
+                const expirydate = new Date();
+                expirydate.setTime(expirydate.getTime() + (4 * 24 * 60 * 60 * 1000));
+                let expires = "expires=" + expirydate.toUTCString();
+                //const time = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() + 4);
+                //const cookiesettings = "expires=" + time.getDay() + ", " + time.getDate() + " " + months[time.getMonth()].shortname + " " + time.getFullYear() + " 12:00:00 UTC; SameSite=Strict";
+                const cookiesettings = expires + "; SameSite=Strict" + "; path=/; domain=" + window.location.hostname;
+                document.cookie = "username=" + account.username + "; " + cookiesettings;
+                document.cookie = "authToken=" + account.authToken + "; " + cookiesettings;
                 window.location.href = "/home";
             }
             else {

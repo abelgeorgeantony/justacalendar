@@ -126,15 +126,135 @@
     font-size: 250%;
 }
 
+/*----------------------------------------------------------*/
+.dropbtn {
+    background-color: #e9e9ed;
+    color: black;
+    padding: 16px;
+    border: none;
+    cursor: pointer;
+
+    width: max-content;
+    margin-top: 1%;
+    margin-bottom: 2%;
+    margin-left: 2.1%;
+    padding-top: 1.5%;
+    padding-bottom: 1.5%;
+    font-size: 250%;
+    border: 0px none rgb(54, 175, 255);
+    border-top-left-radius: 10px;
+}
+
+.dropbtn:hover,
+.dropbtn:focus {
+    background-color: #2980B9;
+    color: white;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f1f1f1;
+    min-width: 160px;
+    overflow: auto;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+}
+
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown a:hover {
+    background-color: #ddd;
+}
+
+.show {
+    display: block;
+}
+
+/*----------------------------------------------------------*/
 #eventpopup label {
     font-size: 200%;
 }
 
-#eventpopup input {
-    height: 6vh;
+#eventpopupbody {
+    display: flex;
+    flex-direction: column;
+    margin-left: 1.5%;
+    margin-bottom: 1.5%;
     font-size: 5vh;
     width: 97%;
 }
+
+.eventinputfieldtitle {
+    margin: 0;
+    font-size: 3.5vh;
+}
+
+input.eventinputfield {
+    width: 60%;
+}
+
+.eventinputfield {
+    font-size: 50%;
+}
+
+#eventpopupbody button {
+    margin-top: 5%;
+    width: max-content;
+    font-size: 50%;
+    align-self: center;
+}
+
+
+
+.eventloadingcontainer {
+    top: 0;
+    right: 0;
+    left: 0;
+    width: 100vw;
+    height: 0.8vh;
+    position: fixed;
+    border: 1px solid #0000;
+    z-index: -99;
+}
+.loadingrunner {
+    background: blue;
+    float: left;
+    color: white;
+    width: 25%;
+    height: 100%;
+    border: 0.5px solid black;
+    border-radius: 70px;
+    line-height: 50px;
+    animation-name: slideInFromLeft;
+    animation-duration: 3s;
+    animation-timing-function: linear;
+    animation-iteration-count: 0;
+    text-align: center;
+}
+@keyframes slideInFromLeft {
+    0% {
+        margin-left: 0%;
+    }
+    50% {
+        margin-left: 75%;
+    }
+    100% {
+        margin-left: 0%;
+    }
+}
+
+
 
 
 @media (max-width: 768px) {

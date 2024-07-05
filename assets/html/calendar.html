@@ -11,10 +11,14 @@
     <script src="popups.js"></script>
 </head>
 
-<body onload="loadTable()">
+<body onload="isLoggedIn(loadTable)">
     <div id="loadingcontainer">
         <h1>Hopping!</h1>
         <h1 id="loadingtext">></h1>
+    </div>
+    <div class="eventloadingcontainer">
+        <div class="loadingrunner">
+        </div>
     </div>
     <div class="popupcontainer" id="datepickercontainer">
         <div id="datepicker">
@@ -41,13 +45,18 @@
     <div class="popupcontainer" id="eventpopupcontainer">
         <div id="eventpopup">
             <div class="popupheader" id="eventpopupheader">
-                <h3>Events</h3>
+                <div class="dropdown">
+                    <button onclick="showEventsDropdown()" class="dropbtn" id="eventsdropbtn">Events&#11167;</button>
+                    <div id="eventsDropdown" class="dropdown-content">
+                        <a href="javascript:switchtoEventAdder();">Add Event</a>
+                        <a href="javascript:switchtoInfoByAI();">Info by AI</a>
+                    </div>
+                </div>
                 <button id="popupclosebutton" onclick="hideeventpopup()">X</button>
             </div>
-            <label for="edate">Date:</label>
-            <br>
-            <input type="date" id="edate" name="edate">
-            <br>
+            <div id="eventpopupbody">
+
+            </div>
         </div>
     </div>
     <div id="tablescontainer">
@@ -57,6 +66,19 @@
     </div>
 </body>
 <script>
+    window.onclick = function (event) {
+        if (!event.target.matches('.dropbtn')) {
+            var dropdowns = document.getElementsByClassName("dropdown-content");
+            var i;
+            for (i = 0; i < dropdowns.length; i++) {
+                var openDropdown = dropdowns[i];
+                if (openDropdown.classList.contains('show')) {
+                    openDropdown.classList.remove('show');
+                }
+            }
+        }
+    }
+
     document.getElementById("eventpopupheader").addEventListener("mousedown", () => {
         document.getElementById("eventpopupheader").style.cursor = "grabbing";
     });

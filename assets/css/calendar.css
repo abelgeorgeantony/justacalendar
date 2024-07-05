@@ -126,6 +126,15 @@ body {
   content: url("/aichat_icon_white.png");
 }
 
+#eventslistimg {
+  content: url("/events_icon_black.png");
+}
+
+#eventslistbtn:hover #eventslistimg {
+  content: url("/events_icon_white.png");
+}
+
+
 
 .windowbody {
   display: flex;

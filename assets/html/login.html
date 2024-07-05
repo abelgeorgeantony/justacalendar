@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="signup.css">
+    <script src="login.js"></script>
+</head>
+
+<body>
+    <form method="post">
+        <div class="formContainer">
+            <h1>Log In</h1>
+            <hr>
+            <div id="usernamecontainer">
+                <label for="username"><b>Username</b></label>
+                <br>
+                <input type="text" placeholder="Enter Username" value="" name="username" oninput="validateinput()" id="usernameid"
+                    required>
+                <br>
+            </div>
+            <br>
+            <div id="passwordcontainer">
+                <div class="passcontainers">
+                    <div>
+                        <label for="password"><b>Password</b></label>
+                        <br>
+                        <input type="password" placeholder="Enter Password" value="" name="password" oninput="validateinput()"
+                            id="passwordid" required>
+                    </div>
+                    <button type="button" onclick="togglePassVisibility(this)" id="passwordhidebutton" class="passhidebutton"><img src="eye_black.png"
+                            alt=""></button>
+                </div>
+            </div>
+            <br>
+            <div>
+                <button type="button" onclick="attemptLogin()" id="loginsubmitbutton" class="login" disabled>Log In</button>
+            </div>
+        </div>
+    </form>
+</body>
+
+</html>
