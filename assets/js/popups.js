@@ -38,27 +38,36 @@ function hidedatepicker() {
 }
 
 let clickeddate;
-function showeventpopup(element, body) {
-    console.log(element);
-    clickeddate = displayed_date.getFullYear();
-    if (displayed_date.getMonth() < 9) {
-        clickeddate = clickeddate + "-0" + (displayed_date.getMonth() + 1);
+function showeventpopup(element) {
+    if (element !== null) {
+        console.log(element);
+        clickeddate = displayed_date.getFullYear();
+        if (displayed_date.getMonth() < 9) {
+            clickeddate = clickeddate + "-0" + (displayed_date.getMonth() + 1);
+        }
+        else {
+            clickeddate = clickeddate + "-" + (displayed_date.getMonth() + 1);
+        }
+        if (Number(element.textContent) < 10) {
+            clickeddate = clickeddate + "-0" + element.textContent;
+        }
+        else {
+            clickeddate = clickeddate + "-" + element.textContent;
+        }
+        console.log(clickeddate);
+        switchtoEventList();
     }
     else {
-        clickeddate = clickeddate + "-" + (displayed_date.getMonth() + 1);
+        clickeddate = element;
+        switchtoInfoByAI();
     }
-    if (Number(element.textContent) < 10) {
-        clickeddate = clickeddate + "-0" + element.textContent;
-    }
-    else {
-        clickeddate = clickeddate + "-" + element.textContent;
-    }
-    console.log(clickeddate);
-    switchtoEventList();
     dragPopUp(document.getElementById("eventpopup"));
     document.getElementById("eventpopupcontainer").style.zIndex = "9";
 }
 function hideeventpopup() {
+    if (document.getElementById("eventpopupbody").parentElement.children.length === 3) {
+        document.getElementById("eventpopupbody").parentElement.removeChild(document.getElementById("eventpopupbody").parentElement.children[2]);
+    }
     document.getElementById("eventpopupbody").innerHTML = "";
     document.getElementById("eventpopupcontainer").style.zIndex = "-1";
     document.getElementById("eventpopup").style.top = "50%";
@@ -108,6 +117,7 @@ function dragPopUp(elmnt) {
 }
 
 
+let eventslist = [];
 function switchtoEventList() {
     closeEventsDropdown();
     document.getElementById("eventsdropbtn").innerHTML = "Events&#11167;";
@@ -115,8 +125,20 @@ function switchtoEventList() {
     document.getElementById("eventsDropdown").children[0].href = "javascript:switchtoEventAdder();";
     document.getElementById("eventsDropdown").children[1].innerText = "Info by AI";
     document.getElementById("eventsDropdown").children[1].href = "javascript:switchtoInfoByAI();";
-    
-    reqEventFromDB(clickeddate, 0);
+
+    eventslist = [];
+    document.getElementById("eventpopupbody").setAttribute("style", "overflow:scroll; height: 40vh");
+    const cdate = new Date(clickeddate).getDate() + "/" + (new Date(clickeddate).getMonth() + 1) + "/" + new Date(clickeddate).getFullYear();
+    const datecard = document.createElement("div");
+    datecard.innerText = cdate;
+    datecard.style = "position: fixed; background: black; color: white;";
+    const datecarddummy = document.createElement("div");
+    datecarddummy.innerText = cdate;
+    datecarddummy.style = "color: #0000; background: #0000"
+    document.getElementById("eventpopupbody").appendChild(datecard);
+    document.getElementById("eventpopupbody").appendChild(datecarddummy);
+    startTopBarAnimation(null);
+    reqEventListFromDB(clickeddate, 0);
 }
 function switchtoEventAdder() {
     closeEventsDropdown();
@@ -128,6 +150,8 @@ function switchtoEventAdder() {
 
     const eventdateinputtitle = document.createElement("h4");
     const eventdateinput = document.createElement("input");
+    const eventtimeinputtitle = document.createElement("h4");
+    const eventtimeinput = document.createElement("input");
     const eventnameinputtitle = document.createElement("h4");
     const eventnameinput = document.createElement("input");
     const eventdescriptiontitle = document.createElement("h4");
@@ -139,6 +163,13 @@ function switchtoEventAdder() {
     eventdateinput.type = "date";
     eventdateinput.value = clickeddate;
     eventdateinput.classList.add("eventinputfield");
+
+    eventtimeinputtitle.innerText = "Time:";
+    eventtimeinputtitle.classList.add("eventinputfieldtitle");
+    eventtimeinput.type = "time";
+    eventtimeinput.value = (new Date().getHours() + ":" + new Date().getMinutes());
+    console.log(eventtimeinput.value);
+    eventtimeinput.classList.add("eventinputfield");
 
     eventnameinputtitle.innerText = "Event Name:";
     eventnameinputtitle.classList.add("eventinputfieldtitle");
@@ -156,6 +187,8 @@ function switchtoEventAdder() {
 
     document.getElementById("eventpopupbody").appendChild(eventdateinputtitle);
     document.getElementById("eventpopupbody").appendChild(eventdateinput);
+    document.getElementById("eventpopupbody").appendChild(eventtimeinputtitle);
+    document.getElementById("eventpopupbody").appendChild(eventtimeinput);
     document.getElementById("eventpopupbody").appendChild(eventnameinputtitle);
     document.getElementById("eventpopupbody").appendChild(eventnameinput);
     document.getElementById("eventpopupbody").appendChild(eventdescriptiontitle);
@@ -169,11 +202,28 @@ function switchtoInfoByAI() {
     document.getElementById("eventsDropdown").children[0].href = "javascript:switchtoEventList();";
     document.getElementById("eventsDropdown").children[1].innerText = "Add Event";
     document.getElementById("eventsDropdown").children[1].href = "javascript:switchtoEventAdder();";
+
+
+    document.getElementById("eventpopupbody").setAttribute("style", "overflow:scroll; height: 40vh");
+    const infobox = document.createElement("div");
+    const datetoprint = rdate.date.getDate() + "/" + (rdate.date.getMonth() + 1) + "/" + rdate.date.getFullYear();
+    infobox.innerHTML = datetoprint + "<br>" + rdate.info;
+    infobox.style = "background: white;"
+    document.getElementById("eventpopupbody").appendChild(infobox);
+    const aiwarning = document.createElement("p");
+    aiwarning.style = "margin: 2%"
+    aiwarning.innerHTML = "&#8505; Information generated by AI is not trustable!";
+    document.getElementById("eventpopupbody").parentElement.appendChild(aiwarning);
+    clickeddate = displayed_date;
 }
 function showEventsDropdown() {
     document.getElementById("eventsDropdown").classList.toggle("show");
 }
 function closeEventsDropdown() {
+    if (document.getElementById("eventpopupbody").parentElement.children.length === 3) {
+        document.getElementById("eventpopupbody").parentElement.removeChild(document.getElementById("eventpopupbody").parentElement.children[2]);
+    }
+    document.getElementById("eventpopupbody").removeAttribute("style");
     document.getElementById("eventpopupbody").innerHTML = "";
     if (document.getElementById("eventsDropdown").classList.contains("show")) {
         document.getElementById("eventsDropdown").classList.remove("show");
@@ -184,19 +234,21 @@ function closeEventsDropdown() {
 var xhttpeventsubmit = new XMLHttpRequest();
 function addEventToDB() {
     let dateofevent = document.getElementById("eventpopupbody").children[1].value;
-    let nameofevent = document.getElementById("eventpopupbody").children[3].value;
-    let descriptionofevent = document.getElementById("eventpopupbody").children[5].value;
+    let timeofevent = document.getElementById("eventpopupbody").children[3].value;
+    let nameofevent = document.getElementById("eventpopupbody").children[5].value;
+    let descriptionofevent = document.getElementById("eventpopupbody").children[7].value;
 
     if (xhttpeventsubmit.readyState === 0 || xhttpeventsubmit.readyState === 4) {
         startTopBarAnimation(document.getElementById("eventpopupbody").children[document.getElementById("eventpopupbody").children.length - 1]);
         xhttpeventsubmit.open("POST", "/eventsubmit", true);
         xhttpeventsubmit.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        xhttpeventsubmit.send("username=" + getCookie("username") + "&date=" + dateofevent + "&name=" + nameofevent + "&description=" + descriptionofevent);
+        xhttpeventsubmit.send("username=" + getCookie("username") + "&date=" + dateofevent + "&time=" + timeofevent + "&name=" + nameofevent + "&description=" + descriptionofevent);
     }
     xhttpeventsubmit.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             const result = JSON.parse(xhttpeventsubmit.response);
             if (result.eventadded === true) {
+                switchtoEventList();
                 stopTopBarAnimation(document.getElementById("eventpopupbody").children[document.getElementById("eventpopupbody").children.length - 1]);
             }
         }
@@ -205,8 +257,7 @@ function addEventToDB() {
 }
 
 var xhttpeventrequest = new XMLHttpRequest();
-function reqEventFromDB(dateofevent, lastreceivedeventid) {
-    
+function reqEventListFromDB(dateofevent, lastreceivedeventid) {
     if (xhttpeventrequest.readyState === 0 || xhttpeventrequest.readyState === 4) {
         //startTopBarAnimation();
         xhttpeventrequest.open("POST", "/eventrequest", true);
@@ -215,15 +266,42 @@ function reqEventFromDB(dateofevent, lastreceivedeventid) {
     }
     xhttpeventrequest.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
-            const result = JSON.parse(xhttpeventrequest.response);
+            const resfromdb = JSON.parse(xhttpeventrequest.response);
+            if (resfromdb.eventfound === true) {
+                eventslist.push(resfromdb);
+                console.log(eventslist[eventslist.length - 1]);
+                updateEventListOutput();
+            }
+            else {
+                eventslist.push(resfromdb);
+                updateEventListOutput();
+                stopTopBarAnimation(null);
+            }
         }
     };
-
+}
+function updateEventListOutput() {
+    if (eventslist[0].eventfound === false || eventslist.length === 0) {
+        document.getElementById("eventpopupbody").innerHTML = document.getElementById("eventpopupbody").innerHTML + "<br>Add an event to list it here!";
+    }
+    else if (eventslist[eventslist.length - 1].eventfound === true) {
+        const eventcard = document.createElement("div");
+        const ename = document.createElement("h4");
+        const edescription = document.createElement("p");
+        ename.innerText = eventslist[eventslist.length - 1].name;
+        ename.style = "border: 0.5px solid #000; margin: 0;";
+        edescription.innerText = eventslist[eventslist.length - 1].description;
+        edescription.style = "margin-top: 1%; margin-bottom: 2%; font-size: 55%;"
+        eventcard.style = "border: 2px solid #000; background:white;";
+        eventcard.appendChild(ename);
+        eventcard.appendChild(edescription);
+        document.getElementById("eventpopupbody").appendChild(eventcard);
+        reqEventListFromDB(clickeddate, eventslist[eventslist.length - 1].eventid);
+    }
 }
 
-
 function startTopBarAnimation(element) {
-    if(element !== null) {
+    if (element !== null && element !== undefined) {
         element.setAttribute("disabled", "true");
     }
     document.querySelector(".eventloadingcontainer").style.zIndex = "99";
@@ -232,7 +310,7 @@ function startTopBarAnimation(element) {
 function stopTopBarAnimation(element) {
     document.querySelector(".eventloadingcontainer").style.zIndex = "-99";
     document.querySelector(".loadingrunner").style.animationIterationCount = "0";
-    if(element !== null) {
+    if (element !== null && element !== undefined) {
         element.removeAttribute("disabled");
     }
 }

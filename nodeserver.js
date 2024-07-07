@@ -36,6 +36,9 @@ app.get("/signup", (req, res) => {
 app.get("/calendar.js", (req, res) => {
     res.sendFile(path.join(__dirname, "assets/js/calendar.js"));
 });
+app.get("/donut.js", (req, res) => {
+    res.sendFile(path.join(__dirname, "assets/js/donut.js"));
+});
 app.get("/popups.js", (req, res) => {
     res.sendFile(path.join(__dirname, "assets/js/popups.js"));
 });
@@ -96,6 +99,7 @@ app.post("/signupsubmit", urlencodedParser, async (req, res) => {
         catch (err) {
             console.log(err);
             res.status(200).send({ "created": false });
+            await mongoclient.close();
             return;
         }
         const authToken = await loginUser(username, req.body.password);
@@ -118,6 +122,7 @@ app.post("/loginsubmit", urlencodedParser, async (req, res) => {
     catch (err) {
         console.log(err);
         res.status(200).send({ "authentic": false });
+        await mongoclient.close();
         return;
     }
     finally {
@@ -139,11 +144,11 @@ app.post("/checktokenauthenticity", urlencodedParser, async (req, res) => {
             else {
                 res.status(200).send({ "authentic": false });
             }
-            return;
         }
         catch (err) {
             console.log(err);
             res.status(200).send({ "authentic": false });
+            await mongoclient.close();
             return;
         }
     } finally {
@@ -172,17 +177,20 @@ app.post("/searchusername", urlencodedParser, async (req, res) => {
 app.post("/eventsubmit", urlencodedParser, async (req, res) => {
     const uname = req.body.username;
     const dateofevent = req.body.date;
+    const timeofevent = req.body.time;
     const nameofevent = req.body.name;
     const descriptionofevent = req.body.description;
     try {
         await mongoclient.connect();
         const eventscollection = mongoclient.db("jac_events").collection(uname + "events");
         try {
-            await eventscollection.insertOne({ "date": dateofevent, "name": nameofevent, "description": descriptionofevent });
+            const neweventid = (await eventscollection.find({ "date": dateofevent }).count() + 1);
+            await eventscollection.insertOne({ "eventid": neweventid, "date": dateofevent, "time":timeofevent, "name": nameofevent, "description": descriptionofevent });
         }
         catch (err) {
             console.log(err);
             res.status(200).send({ "eventadded": false });
+            await mongoclient.close();
             return;
         }
         res.status(200).send({ "eventadded": true });
@@ -193,28 +201,29 @@ app.post("/eventsubmit", urlencodedParser, async (req, res) => {
 app.post("/eventrequest", urlencodedParser, async (req, res) => {
     const uname = req.body.username;
     const dateofevent = req.body.date;
-    const idtofind_integer = (Number(req.body.lastreceivedeventid)+1);
-    const idtofind = idtofind_integer.toString(16);
+    const lastsentid = Number(req.body.lastreceivedeventid);
 
     try {
         await mongoclient.connect();
         const eventscollection = mongoclient.db("jac_events").collection(uname + "events");
         let userevent;
         try {
-            if((idtofind_integer-1) !== 0) {
-                userevent = await eventscollection.findOne({"_id": idtofind, "date": dateofevent}, { _id: 0, date: 0, name: 1, description: 1 });
-            }
-            else {
-                userevent = await eventscollection.findOne({"date": dateofevent}, { _id: 1, date: 0, name: 1, description: 1 });
-            }
+            userevent = await eventscollection.findOne({ "eventid": { $gt: lastsentid }, "date": dateofevent });
+
             console.log(userevent);
         }
         catch (err) {
             console.log(err);
-            res.status(200).send({ "eventadded": false });
+            res.status(200).send({ "eventfound": false, "error": true, "eventsfinished": false });
+            await mongoclient.close();
             return;
         }
-        res.status(200).send({ "eventadded": true });
+        if (userevent !== null) {
+            res.status(200).send({ "eventfound": true, "eventid":userevent.eventid, "date":userevent.date, "time":userevent.time, "name": userevent.name, "description":userevent.description});
+        }
+        else {
+            res.status(200).send({ "eventfound": false, "error": false, "eventsfinished": true });
+        }
     } finally {
         await mongoclient.close();
     }

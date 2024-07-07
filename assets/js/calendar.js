@@ -140,6 +140,10 @@ function getCookie(nametofind) {
     });
     return cookievalue;
 }
+function clearCookie(cookiename) {
+    console.log(cookiename + "=;" + " path=/; domain=" + window.location.hostname);
+    document.cookie = cookiename + "=;" + " path=/; domain=" + window.location.hostname;
+}
 
 var xhttpcheck = new XMLHttpRequest();
 function isLoggedIn(loadPage) {
@@ -268,8 +272,8 @@ function generateWelcomeCalendar() {
         "<a href=\"/about\">Help/<br>Support</a>",
         "<a href=\"/about\">About</a>",
         "<a href=\"/about\">About</a>",
-        "<a href=\"/signup\">Sign Up</a>",
-        "<a href=\"/login\">Log In</a>"
+        "<a href=\"/signup\">Sign<br>Up</a>",
+        "<a href=\"/login\">Log<br>In</a>"
     ];
     const t_headings = table.querySelectorAll('TH');
     for (const [index, t_heading] of t_headings.entries()) {
@@ -347,6 +351,7 @@ function timeHop() {
     if (rdate.isready === true) {
         loading.stopanimation();
         updatedate(rdate.date.getFullYear(), rdate.date.getMonth(), rdate.date.getDate());
+        showeventpopup(null);
         rdate.isready = false;
         reqTimehopFromServer();
     }
@@ -445,9 +450,13 @@ function addsidebar1content() {
 function openAccountandSettings() {
     const content = document.createElement("div");
     const name = document.createElement("div");
-    name.innerHTML = "Nick Name<br>@"+getCookie("username");
+    const logout = document.createElement("button");
+    name.innerHTML = "Nick Name<br>@" + getCookie("username");
+    logout.innerText = "Log Out";
+    logout.setAttribute("onclick","clearCookie(\"username\"); clearCookie(\"authToken\"); window.location.href = \"/home\";");
 
     content.appendChild(name);
+    content.appendChild(logout);
     openWindow("Account and Settings", content);
 }
 function openAIchat() {
