@@ -138,7 +138,7 @@ function switchtoEventList() {
     document.getElementById("eventpopupbody").appendChild(datecard);
     document.getElementById("eventpopupbody").appendChild(datecarddummy);
     startTopBarAnimation(null);
-    reqEventListFromDB(clickeddate, 0);
+    reqEventListofdayFromDB(clickeddate, 0);
 }
 function switchtoEventAdder() {
     closeEventsDropdown();
@@ -167,7 +167,22 @@ function switchtoEventAdder() {
     eventtimeinputtitle.innerText = "Time:";
     eventtimeinputtitle.classList.add("eventinputfieldtitle");
     eventtimeinput.type = "time";
-    eventtimeinput.value = (new Date().getHours() + ":" + new Date().getMinutes());
+    if (new Date().getHours() < 10) {
+        if (new Date().getMinutes() < 10) {
+            eventtimeinput.value = ("0" + new Date().getHours() + ":0" + new Date().getMinutes());
+        }
+        else {
+            eventtimeinput.value = ("0" + new Date().getHours() + ":" + new Date().getMinutes());
+        }
+    }
+    else {
+        if (new Date().getMinutes() < 10) {
+            eventtimeinput.value = (new Date().getHours() + ":0" + new Date().getMinutes());
+        }
+        else {
+            eventtimeinput.value = (new Date().getHours() + ":" + new Date().getMinutes());
+        }
+    }
     console.log(eventtimeinput.value);
     eventtimeinput.classList.add("eventinputfield");
 
@@ -257,10 +272,10 @@ function addEventToDB() {
 }
 
 var xhttpeventrequest = new XMLHttpRequest();
-function reqEventListFromDB(dateofevent, lastreceivedeventid) {
+function reqEventListofdayFromDB(dateofevent, lastreceivedeventid) {
     if (xhttpeventrequest.readyState === 0 || xhttpeventrequest.readyState === 4) {
         //startTopBarAnimation();
-        xhttpeventrequest.open("POST", "/eventrequest", true);
+        xhttpeventrequest.open("POST", "/eventofdayrequest", true);
         xhttpeventrequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
         xhttpeventrequest.send("username=" + getCookie("username") + "&date=" + dateofevent + "&lastreceivedeventid=" + lastreceivedeventid);
     }
@@ -270,17 +285,17 @@ function reqEventListFromDB(dateofevent, lastreceivedeventid) {
             if (resfromdb.eventfound === true) {
                 eventslist.push(resfromdb);
                 console.log(eventslist[eventslist.length - 1]);
-                updateEventListOutput();
+                updateEventListofdayOutput();
             }
             else {
                 eventslist.push(resfromdb);
-                updateEventListOutput();
+                updateEventListofdayOutput();
                 stopTopBarAnimation(null);
             }
         }
     };
 }
-function updateEventListOutput() {
+function updateEventListofdayOutput() {
     if (eventslist[0].eventfound === false || eventslist.length === 0) {
         document.getElementById("eventpopupbody").innerHTML = document.getElementById("eventpopupbody").innerHTML + "<br>Add an event to list it here!";
     }
@@ -296,7 +311,7 @@ function updateEventListOutput() {
         eventcard.appendChild(ename);
         eventcard.appendChild(edescription);
         document.getElementById("eventpopupbody").appendChild(eventcard);
-        reqEventListFromDB(clickeddate, eventslist[eventslist.length - 1].eventid);
+        reqEventListofdayFromDB(clickeddate, eventslist[eventslist.length - 1].eventid);
     }
 }
 

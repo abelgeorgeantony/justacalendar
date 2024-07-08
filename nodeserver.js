@@ -9,6 +9,7 @@ const bodyParser = require('body-parser')
 const jsonParser = bodyParser.json();
 const urlencodedParser = bodyParser.urlencoded({ extended: false });
 const crypto = require("crypto");
+const { totalmem } = require("os");
 
 
 // Access your API key as an environment variable (see "Set up your API key" above)
@@ -175,17 +176,20 @@ app.post("/searchusername", urlencodedParser, async (req, res) => {
     }
 });
 app.post("/eventsubmit", urlencodedParser, async (req, res) => {
+    const daystart = new Date((req.body.date));
+    const dayend = new Date((req.body.date + "T23:59Z"));
+
     const uname = req.body.username;
-    const dateofevent = req.body.date;
-    const timeofevent = req.body.time;
+    const datetimeofevent = new Date((req.body.date + "T" + req.body.time + "Z"));
     const nameofevent = req.body.name;
     const descriptionofevent = req.body.description;
     try {
         await mongoclient.connect();
         const eventscollection = mongoclient.db("jac_events").collection(uname + "events");
         try {
-            const neweventid = (await eventscollection.find({ "date": dateofevent }).count() + 1);
-            await eventscollection.insertOne({ "eventid": neweventid, "date": dateofevent, "time":timeofevent, "name": nameofevent, "description": descriptionofevent });
+            const neweventid_local = (await eventscollection.find({ $and: [{ "datetime": { $gt: daystart } }, { "datetime": { $lt: dayend } }] }).count() + 1);
+            const neweventid_global = (await eventscollection.countDocuments() + 1);
+            await eventscollection.insertOne({ "eventid_local": neweventid_local, "eventid_global": neweventid_global, "datetime": datetimeofevent, "name": nameofevent, "description": descriptionofevent });
         }
         catch (err) {
             console.log(err);
@@ -198,9 +202,13 @@ app.post("/eventsubmit", urlencodedParser, async (req, res) => {
         await mongoclient.close();
     }
 });
-app.post("/eventrequest", urlencodedParser, async (req, res) => {
+app.post("/eventofdayrequest", urlencodedParser, async (req, res) => {
     const uname = req.body.username;
-    const dateofevent = req.body.date;
+    const daystart = new Date((req.body.date));
+    const dayend = new Date((req.body.date + "T23:59Z"));
+
+    console.log(daystart);
+    console.log(dayend);
     const lastsentid = Number(req.body.lastreceivedeventid);
 
     try {
@@ -208,8 +216,7 @@ app.post("/eventrequest", urlencodedParser, async (req, res) => {
         const eventscollection = mongoclient.db("jac_events").collection(uname + "events");
         let userevent;
         try {
-            userevent = await eventscollection.findOne({ "eventid": { $gt: lastsentid }, "date": dateofevent });
-
+            userevent = await eventscollection.findOne({ "eventid_local": { $gt: lastsentid }, $and: [{ "datetime": { $gt: daystart } }, { "datetime": { $lt: dayend } }] });
             console.log(userevent);
         }
         catch (err) {
@@ -219,7 +226,37 @@ app.post("/eventrequest", urlencodedParser, async (req, res) => {
             return;
         }
         if (userevent !== null) {
-            res.status(200).send({ "eventfound": true, "eventid":userevent.eventid, "date":userevent.date, "time":userevent.time, "name": userevent.name, "description":userevent.description});
+            res.status(200).send({ "eventfound": true, "eventid": userevent.eventid_local, "datetime": userevent.datetime, "name": userevent.name, "description": userevent.description });
+        }
+        else {
+            res.status(200).send({ "eventfound": false, "error": false, "eventsfinished": true });
+        }
+    } finally {
+        await mongoclient.close();
+    }
+});
+app.post("/upcomingeventrequest", urlencodedParser, async (req, res) => {
+    const uname = req.body.username;
+    const curr_datetime = new Date(req.body.currentdate + "T" + req.body.currenttime + "Z");
+    console.log(curr_datetime);
+    const lastsentid = Number(req.body.lastreceivedeventid);
+
+    try {
+        await mongoclient.connect();
+        const eventscollection = mongoclient.db("jac_events").collection(uname + "events");
+        let userevent;
+        try {
+            userevent = await eventscollection.findOne({ "datetime": { $gte: curr_datetime }, "eventid_global": { $gt: lastsentid } });
+            console.log(userevent);
+        }
+        catch (err) {
+            console.log(err);
+            res.status(200).send({ "eventfound": false, "error": true, "eventsfinished": false });
+            await mongoclient.close();
+            return;
+        }
+        if (userevent !== null) {
+            res.status(200).send({ "eventfound": true, "eventid": userevent.eventid_global, "datetime": userevent.datetime, "name": userevent.name, "description": userevent.description });
         }
         else {
             res.status(200).send({ "eventfound": false, "error": false, "eventsfinished": true });

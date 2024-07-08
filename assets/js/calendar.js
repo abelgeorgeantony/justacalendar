@@ -453,7 +453,7 @@ function openAccountandSettings() {
     const logout = document.createElement("button");
     name.innerHTML = "Nick Name<br>@" + getCookie("username");
     logout.innerText = "Log Out";
-    logout.setAttribute("onclick","clearCookie(\"username\"); clearCookie(\"authToken\"); window.location.href = \"/home\";");
+    logout.setAttribute("onclick", "clearCookie(\"username\"); clearCookie(\"authToken\"); window.location.href = \"/home\";");
 
     content.appendChild(name);
     content.appendChild(logout);
@@ -463,9 +463,88 @@ function openAIchat() {
     const content = document.createElement("div");
     openWindow("AI Chat(Gemini)", content);
 }
+
+let upcomingeventslist = [];
+let curr_date;
+let curr_time;
 function openEvents() {
+    upcomingeventslist = [];
     const content = document.createElement("div");
     openWindow("Events", content);
+    startTopBarAnimation(null);
+    if (new Date().getMonth() < 9) {
+        if (new Date().getDate() < 10) {
+            curr_date = new Date().getFullYear() + "-0" + (new Date().getMonth() + 1) + "-0" + new Date().getDate();
+        }
+        else {
+            curr_date = new Date().getFullYear() + "-0" + (new Date().getMonth() + 1) + "-" + new Date().getDate();
+        }
+    }
+    else {
+        if (new Date().getDate() < 10) {
+            curr_date = new Date().getFullYear() + "-" + (new Date().getMonth() + 1) + "-0" + new Date().getDate();
+        }
+        else {
+            curr_date = new Date().getFullYear() + "-" + (new Date().getMonth() + 1) + "-" + new Date().getDate();
+        }
+
+    }
+    if (new Date().getHours() < 10) {
+        if (new Date().getMinutes() < 10) {
+            curr_time = ("0" + new Date().getHours() + ":0" + new Date().getMinutes());
+        }
+        else {
+            curr_time = ("0" + new Date().getHours() + ":" + new Date().getMinutes());
+        }
+    }
+    else {
+        if (new Date().getMinutes() < 10) {
+            curr_time = (new Date().getHours() + ":0" + new Date().getMinutes());
+        }
+        else {
+            curr_time = (new Date().getHours() + ":" + new Date().getMinutes());
+        }
+    }
+    reqUpcomingEvent(curr_date, curr_time, 0);
+}
+var xhttpeventsrequest = new XMLHttpRequest();
+function reqUpcomingEvent(currdate, currtime, lastrec_eventid) {
+    if (xhttpeventsrequest.readyState === 0 || xhttpeventsrequest.readyState === 4) {
+        xhttpeventsrequest.open("POST", "/upcomingeventrequest", true);
+        xhttpeventsrequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xhttpeventsrequest.send("username=" + getCookie("username") + "&currentdate=" + currdate + "&currenttime=" + currtime + "&lastreceivedeventid=" + lastrec_eventid);
+    }
+    xhttpeventsrequest.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            const res = JSON.parse(xhttpeventsrequest.response);
+            if (res.eventfound === true) {
+                upcomingeventslist.push(res);
+                updateUpcomingEventsListOutput();
+            }
+            else {
+                upcomingeventslist.push(res);
+                updateUpcomingEventsListOutput();
+                stopTopBarAnimation(null);
+            }
+        }
+    };
+}
+function updateUpcomingEventsListOutput() {
+    const wbody = document.getElementsByClassName("windowbody")[0];
+    if(upcomingeventslist[upcomingeventslist.length - 1].eventfound === true) {
+        const eventcard = document.createElement("div");
+        const ename = document.createElement("h4");
+        const edescription = document.createElement("p");
+        ename.innerText = upcomingeventslist[upcomingeventslist.length - 1].name;
+        ename.style = "border: 0.5px solid #000; margin: 0;";
+        edescription.innerText = upcomingeventslist[upcomingeventslist.length - 1].description;
+        edescription.style = "margin-top: 1%; margin-bottom: 2%; font-size: 55%;"
+        eventcard.style = "border: 2px solid #000; background:white;";
+        eventcard.appendChild(ename);
+        eventcard.appendChild(edescription);
+        wbody.appendChild(eventcard);
+        reqUpcomingEvent(curr_date, curr_time, upcomingeventslist[upcomingeventslist.length -1].eventid);
+    }
 }
 
 function openWindow(headingname, content) {
