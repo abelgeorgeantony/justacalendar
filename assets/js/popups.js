@@ -167,22 +167,7 @@ function switchtoEventAdder() {
     eventtimeinputtitle.innerText = "Time:";
     eventtimeinputtitle.classList.add("eventinputfieldtitle");
     eventtimeinput.type = "time";
-    if (new Date().getHours() < 10) {
-        if (new Date().getMinutes() < 10) {
-            eventtimeinput.value = ("0" + new Date().getHours() + ":0" + new Date().getMinutes());
-        }
-        else {
-            eventtimeinput.value = ("0" + new Date().getHours() + ":" + new Date().getMinutes());
-        }
-    }
-    else {
-        if (new Date().getMinutes() < 10) {
-            eventtimeinput.value = (new Date().getHours() + ":0" + new Date().getMinutes());
-        }
-        else {
-            eventtimeinput.value = (new Date().getHours() + ":" + new Date().getMinutes());
-        }
-    }
+    eventtimeinput.value = formatTime(new Date().getHours(), new Date().getMinutes(), 24);
     console.log(eventtimeinput.value);
     eventtimeinput.classList.add("eventinputfield");
 

@@ -37,9 +37,6 @@ app.get("/signup", (req, res) => {
 app.get("/calendar.js", (req, res) => {
     res.sendFile(path.join(__dirname, "assets/js/calendar.js"));
 });
-app.get("/donut.js", (req, res) => {
-    res.sendFile(path.join(__dirname, "assets/js/donut.js"));
-});
 app.get("/popups.js", (req, res) => {
     res.sendFile(path.join(__dirname, "assets/js/popups.js"));
 });
