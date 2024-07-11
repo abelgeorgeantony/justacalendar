@@ -40,6 +40,9 @@ app.get("/calendar.js", (req, res) => {
 app.get("/popups.js", (req, res) => {
     res.sendFile(path.join(__dirname, "assets/js/popups.js"));
 });
+app.get("/windows.js", (req, res) => {
+    res.sendFile(path.join(__dirname, "assets/js/windows.js"));
+});
 app.get("/signup.js", (req, res) => {
     res.sendFile(path.join(__dirname, "assets/js/signup.js"));
 });
