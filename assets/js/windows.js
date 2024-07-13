@@ -8,25 +8,44 @@ function openAccountandSettings() {
 
     content.appendChild(name);
     content.appendChild(logout);
-    openWindow("Account and Settings", content);
+
+    const sidebarbtnscontent = [
+        {
+            fn: "test",
+            btnname: "test"
+        },
+        {
+            fn: "test2",
+            btnname: "test"
+        },
+        {
+            fn: "test3",
+            btnname: "test"
+        },
+        {
+            fn: "test4",
+            btnname: "test"
+        },
+    ];
+    openWindow("Account and Settings", content, sidebarbtnscontent);
 }
 function openAIchat() {
     const content = document.createElement("div");
     const chatcontainer = document.createElement("div");
 
     const chathistory = document.createElement("div");
-    chathistory.innerHTML = "asfasdffffffffffffff<br>asfasdffffffffffffff<br>asfasdffffffffffffff<br>asfasdffffffffffffff<br>asfasdffffffffffffff<br>asfasdffffffffffffff<br>asfasdffffffffffffff<br>asfasdffffffffffffff<br>asfasdffffffffffffff<br>asfasdffffffffffffff<br>asfasdffffffffffffff<br>asfasdffffffffffffff<br>asfasdffffffffffffff<br>asfasdffffffffffffff<br>asfasdffffffffffffff<br>asfasdffffffffffffff<br>asfasdffffffffffffff<br>asfasdffffffffffffff<br>asfasdffffffffffffff<br>asfasdffffffffffffff<br>asfasdffffffffffffff<br>asfasdffffffffffffff<br>asfasdffffffffffffff<br>asfasdffffffffffffff<br>asfasdffffffffffffff<br>asfasdffffffffffffff<br>asfasdffffffffffffff<br>asfasdffffffffffffff<br>asfasdffffffffffffff<br>";
     const messageinputdiv = document.createElement("div");
     const messageinput = document.createElement("textarea");
     const sendbtn = document.createElement("button");
 
     chatcontainer.style = "display:flex; flex-direction: column; height: 100%; width: 100%;";
 
-    chathistory.style = "height: inherit; overflow: scroll;";
+    chathistory.style = "height: inherit; padding-top: 1%; overflow: scroll; display: flex; flex-direction: column;";
 
     messageinput.rows = 1;
-    messageinput.style = "width: 100%; font-size: 140%; padding-top: 2.5%";
+    messageinput.style = "width: 90%; margin-left: 2.5%; font-size: 140%; padding-top: 2.5%; border: 2px solid #000;";
     sendbtn.innerText = "Send";
+    sendbtn.setAttribute("onclick", "sendMessageToAi()");
     sendbtn.style = "height: 100%;";
     messageinputdiv.style = "display: flex; margin-bottom: 0.2%; margin-left: 0.1%; margin-right: 0.1%;";
 
@@ -36,51 +55,158 @@ function openAIchat() {
     chatcontainer.appendChild(chathistory);
     chatcontainer.appendChild(messageinputdiv);
     content.appendChild(chatcontainer);
-    openWindow("AI Chat(Gemini)", content);
+
+    const sidebarbtnscontent = [
+        {
+            fn: "test",
+            btnname: "test"
+        },
+        {
+            fn: "isElementVisible()",
+            btnname: "test Visible"
+        },
+        {
+            fn: "test3",
+            btnname: "test"
+        },
+        {
+            fn: "test4",
+            btnname: "test"
+        }
+    ];
+    openWindow("AI Chat(Gemini)", content, sidebarbtnscontent);
+    if(chathistorylist.length === 0 || chathistorylist[chathistorylist.length -1].chatsfinished === false) {
+        reqChatHistory(-1);
+    }
+    else {
+        addChatListToChatHistory();
+    }
+}
+var xhttpchatrequest = new XMLHttpRequest();
+function reqChatHistory(lastreceivedid) {
+    if (xhttpchatrequest.readyState === 0 || xhttpchatrequest.readyState === 4) {
+        xhttpchatrequest.open("POST", "/aichathistoryrequest", true);
+        xhttpchatrequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xhttpchatrequest.send("username=" + getCookie("username") + "&lastreceivedid=" + lastreceivedid);
+    }
+    xhttpchatrequest.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            const res = JSON.parse(xhttpchatrequest.response);
+            addSingleChatHistory(res);
+        }
+    };
+}
+var xhttpmsgsubmit = new XMLHttpRequest();
+function sendMessageToAi() {
+    findandsetcurrdate_time();
+    const msg = document.querySelector(".windowbody").children[0].children[0].children[1].children[0].value;
+    console.log(msg);
+    addUserMsgToOutput(msg);
+    if (xhttpmsgsubmit.readyState === 0 || xhttpmsgsubmit.readyState === 4) {
+        xhttpmsgsubmit.open("POST", "/aichatmsgsubmit", true);
+        xhttpmsgsubmit.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xhttpmsgsubmit.send("username=" + getCookie("username") + "&message=" + msg + "&date=" + curr_date + "&time=" + curr_time);
+    }
+    xhttpmsgsubmit.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            const res = JSON.parse(xhttpmsgsubmit.response);
+            console.log(res.reply);
+            addAIMsgToOutput(res.reply);
+        }
+    };
+}
+let chathistorylist = [];
+function addSingleChatHistory(singlechat) {
+    const chathistory = document.querySelector(".windowbody").children[0].children[0].children[0];
+    if (singlechat.chatfound === true) {
+        if (singlechat.chatinitby === "user") {
+            chathistory.insertBefore(aiMsgBubble(singlechat.aimsg), chathistory.firstChild);
+            chathistory.insertBefore(userMsgBubble(singlechat.usermsg), chathistory.firstChild);
+        }
+        reqChatHistory(singlechat.chatid)
+    }
+    else if(singlechat.chatsfinished === true){
+        scrollToElement(chathistory.children[chathistory.children.length - 1]);
+    }
+    chathistorylist.push(singlechat);
+}
+function addChatListToChatHistory() {
+    const chathistory = document.querySelector(".windowbody").children[0].children[0].children[0];
+    for (let i = 0; i < chathistorylist.length-1; i++) {
+        if (chathistorylist[i].chatinitby === "user") {
+            chathistory.insertBefore(aiMsgBubble(chathistorylist[i].aimsg), chathistory.firstChild);
+            chathistory.insertBefore(userMsgBubble(chathistorylist[i].usermsg), chathistory.firstChild);
+        }
+        else {
+            chathistory.insertBefore(userMsgBubble(chathistorylist[i].usermsg), chathistory.firstChild);
+            chathistory.insertBefore(aiMsgBubble(chathistorylist[i].aimsg), chathistory.firstChild);
+        }
+    }
+    scrollToElement(chathistory.children[chathistory.children.length - 1]);
+}
+function addUserMsgToOutput(msgtoadd) {
+    const msgfield = document.querySelector(".windowbody").children[0].children[0].children[1].children[0];
+    const sendbtn = document.querySelector(".windowbody").children[0].children[0].children[1].children[1];
+    msgfield.value = "";
+    msgfield.setAttribute("disabled", "true");
+    sendbtn.setAttribute("disabled", "true");
+    const chathistory = document.querySelector(".windowbody").children[0].children[0].children[0];
+
+    chathistory.appendChild(userMsgBubble(msgtoadd));
+    scrollToElement(chathistory.children[chathistory.children.length - 1]);
+}
+function addAIMsgToOutput(msgtoadd) {
+    const msgfield = document.querySelector(".windowbody").children[0].children[0].children[1].children[0];
+    const sendbtn = document.querySelector(".windowbody").children[0].children[0].children[1].children[1];
+    msgfield.removeAttribute("disabled");
+    sendbtn.removeAttribute("disabled");
+    const chathistory = document.querySelector(".windowbody").children[0].children[0].children[0];
+
+    chathistory.appendChild(aiMsgBubble(msgtoadd));
+    scrollToElement(chathistory.children[chathistory.children.length - 1]);
 }
 
-let upcomingeventslist = [];
-let curr_date;
-let curr_time;
-function openEvents() {
-    upcomingeventslist = [];
-    const content = document.createElement("div");
-    openWindow("Events", content);
-    startTopBarAnimation(null);
-    if (new Date().getMonth() < 9) {
-        if (new Date().getDate() < 10) {
-            curr_date = new Date().getFullYear() + "-0" + (new Date().getMonth() + 1) + "-0" + new Date().getDate();
-        }
-        else {
-            curr_date = new Date().getFullYear() + "-0" + (new Date().getMonth() + 1) + "-" + new Date().getDate();
-        }
-    }
-    else {
-        if (new Date().getDate() < 10) {
-            curr_date = new Date().getFullYear() + "-" + (new Date().getMonth() + 1) + "-0" + new Date().getDate();
-        }
-        else {
-            curr_date = new Date().getFullYear() + "-" + (new Date().getMonth() + 1) + "-" + new Date().getDate();
-        }
 
+
+
+let upcomingeventslist = [];
+function openEvents() {
+    const content = document.createElement("div");
+    const sidebarbtnscontent = [
+        {
+            fn: "sortEvents()",
+            btnname: "Sort"
+        },
+        {
+            fn: "test()",
+            btnname: "test"
+        },
+        {
+            fn: "test3",
+            btnname: "test"
+        },
+        {
+            fn: "test4",
+            btnname: "test"
+        },
+    ];
+    openWindow("Events", content, sidebarbtnscontent);
+    if (upcomingeventslist.length === 0) {
+        startTopBarAnimation(null);
+        findandsetcurrdate_time();
+        reqUpcomingEvent(curr_date, curr_time, 0);
     }
-    if (new Date().getHours() < 10) {
-        if (new Date().getMinutes() < 10) {
-            curr_time = ("0" + new Date().getHours() + ":0" + new Date().getMinutes());
-        }
-        else {
-            curr_time = ("0" + new Date().getHours() + ":" + new Date().getMinutes());
-        }
+    else if (upcomingeventslist[upcomingeventslist.length - 1].asjson.eventsfinished === true) {
+        printUpcomingEventsList();
     }
-    else {
-        if (new Date().getMinutes() < 10) {
-            curr_time = (new Date().getHours() + ":0" + new Date().getMinutes());
-        }
-        else {
-            curr_time = (new Date().getHours() + ":" + new Date().getMinutes());
-        }
+}
+function printUpcomingEventsList() {
+    const events = document.getElementsByClassName("windowbody")[0].children[0];
+    events.innerHTML = "";
+    for (let i = 0; i < upcomingeventslist.length - 1; i++) {
+        console.log(upcomingeventslist[i]);
+        events.appendChild(upcomingeventslist[i].ashtml);
     }
-    reqUpcomingEvent(curr_date, curr_time, 0);
 }
 
 var xhttpeventsrequest = new XMLHttpRequest();
@@ -93,12 +219,16 @@ function reqUpcomingEvent(currdate, currtime, lastrec_eventid) {
     xhttpeventsrequest.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             const res = JSON.parse(xhttpeventsrequest.response);
+            const event = {
+                ashtml: "",
+                asjson: res
+            };
             if (res.eventfound === true) {
-                upcomingeventslist.push(res);
+                upcomingeventslist.push(event);
                 updateUpcomingEventsListOutput();
             }
             else {
-                upcomingeventslist.push(res);
+                upcomingeventslist.push(event);
                 updateUpcomingEventsListOutput();
                 stopTopBarAnimation(null);
             }
@@ -107,22 +237,22 @@ function reqUpcomingEvent(currdate, currtime, lastrec_eventid) {
 }
 function updateUpcomingEventsListOutput() {
     const wbody = document.getElementsByClassName("windowbody")[0];
-    if (upcomingeventslist[upcomingeventslist.length - 1].eventfound === true) {
+    if (upcomingeventslist[upcomingeventslist.length - 1].asjson.eventfound === true) {
         const eventcard = document.createElement("div");
         const edatetimeinfo = document.createElement("div");
         const eventinfo = document.createElement("div");
         const ename = document.createElement("h4");
         const edescription = document.createElement("p");
 
-        const datetime = new Date(upcomingeventslist[upcomingeventslist.length - 1].datetime.slice(0, -1));
+        const datetime = new Date(upcomingeventslist[upcomingeventslist.length - 1].asjson.datetime.slice(0, -1));
         console.log(datetime);
         const edate = formatDate(datetime.getDate(), (datetime.getMonth() + 1), datetime.getFullYear());
         const etime = formatTime(datetime.getHours(), datetime.getMinutes(), 12) + " " + findAmPm(datetime.getHours());
         edatetimeinfo.innerHTML = edate + "<br>" + etime;
         edatetimeinfo.style = "margin-right: 1%; margin-left: 1%; align-self: center;"
-        ename.innerText = upcomingeventslist[upcomingeventslist.length - 1].name;
+        ename.innerText = upcomingeventslist[upcomingeventslist.length - 1].asjson.name;
         ename.style = "border-bottom: 1.5px solid #000; margin: 0; padding-left: 2%; font-size: 200%;";
-        edescription.innerText = upcomingeventslist[upcomingeventslist.length - 1].description;
+        edescription.innerText = upcomingeventslist[upcomingeventslist.length - 1].asjson.description;
         edescription.style = "padding-left: 2%; margin-top: 1%; margin-bottom: 1.5%; font-size: 95%;";
 
         eventinfo.appendChild(ename);
@@ -132,29 +262,24 @@ function updateUpcomingEventsListOutput() {
         eventcard.appendChild(eventinfo);
         eventcard.appendChild(edatetimeinfo);
         wbody.children[0].appendChild(eventcard);
-        reqUpcomingEvent(curr_date, curr_time, upcomingeventslist[upcomingeventslist.length - 1].eventid);
+        upcomingeventslist[upcomingeventslist.length - 1].ashtml = eventcard;
+        reqUpcomingEvent(curr_date, curr_time, upcomingeventslist[upcomingeventslist.length - 1].asjson.eventid);
     }
 }
-let sortedEventsList = [];
 function sortEvents() {
     startTopBarAnimation(null);
-    const events = document.getElementsByClassName("windowbody")[0].children[0];
-    for(let i = 0; i < events.children.length; i++) {
-        sortedEventsList[i] = events.children[i];
-    }
-    for (let j = 0; j < sortedEventsList.length; j++) {
-        for (let i = 0; i < sortedEventsList.length - 1; i++) {
-            if (getDateTimeFromCard(sortedEventsList[i]) > getDateTimeFromCard(sortedEventsList[i + 1])) {
-                const tempcard = sortedEventsList[i];
-                sortedEventsList[i] = sortedEventsList[i + 1];
-                sortedEventsList[i + 1] = tempcard;
+    for (let j = 0; j < upcomingeventslist.length - 1; j++) {
+        for (let i = 0; i < upcomingeventslist.length - 2; i++) {
+            const current_eventdt = getDateTimeFromCard(upcomingeventslist[i].ashtml);
+            const next_eventdt = getDateTimeFromCard(upcomingeventslist[i + 1].ashtml);
+            if (current_eventdt > next_eventdt) {
+                const temp = upcomingeventslist[i];
+                upcomingeventslist[i] = upcomingeventslist[i + 1];
+                upcomingeventslist[i + 1] = temp;
             }
         }
     }
-    events.innerHTML = "";
-    for(let j = 0; j < sortedEventsList.length; j++) {
-        events.appendChild(sortedEventsList[j]);
-    }
+    printUpcomingEventsList();
     stopTopBarAnimation(null);
 }
 function getDateTimeFromCard(ecard) {
@@ -170,15 +295,15 @@ function getDateTimeFromCard(ecard) {
 
 
 
-function openWindow(headingname, content) {
+function openWindow(headingname, content, sidebarbtns) {
     const table = document.getElementById('calendar');
     const datebuttonsbar = document.getElementById('calsidebar2');
     const css_devicesmall = getComputedStyle(document.querySelector(':root')).getPropertyValue("--devicesmall");
     if (css_devicesmall === "false") {
-        datebuttonsbar.innerHTML = "<tr><td><a href=\"javascript:sortEvents();\">Sort</a></td></tr><tr><td>Window</td></tr><tr><td>To</td></tr><tr><td>Use</td></tr>"
+        datebuttonsbar.innerHTML = "<tr><td><a href=\"javascript:" + sidebarbtns[0].fn + ";\">" + sidebarbtns[0].btnname + "</a></td></tr><tr><td><a href=\"javascript:" + sidebarbtns[1].fn + ";\">" + sidebarbtns[1].btnname + "</a></td></tr><tr><td><a href=\"javascript:" + sidebarbtns[2].fn + ";\">" + sidebarbtns[2].btnname + "</a></td></tr><tr><td><a href=\"javascript:" + sidebarbtns[3].fn + ";\">" + sidebarbtns[3].btnname + "</a></td></tr>"
     }
     else {
-        datebuttonsbar.innerHTML = "<tr><td><a href=\"javascript:sortEvents();\">Sort</a></td><td>Window</td><td>To</td><td>Use</td></tr>"
+        datebuttonsbar.innerHTML = "<tr><td><a href=\"javascript:" + sidebarbtns[0].fn + ";\">" + sidebarbtns[0].btnname + "</a></td><td><a href=\"javascript:" + sidebarbtns[1].fn + ";\">" + sidebarbtns[1].btnname + "</a></td><td><a href=\"javascript:" + sidebarbtns[2].fn + ";\">" + sidebarbtns[2].btnname + "</a></td><td><a href=\"javascript:" + sidebarbtns[3].fn + ";\">" + sidebarbtns[3].btnname + "</a></td></tr>"
     }
     deletetable();
     setWindowHeader(table, headingname);
@@ -274,4 +399,72 @@ function findAmPm(hour) {
         return "am";
     }
     return "pm";
+}
+
+
+
+let curr_date;
+let curr_time;
+function findandsetcurrdate_time() {
+    if (new Date().getMonth() < 9) {
+        if (new Date().getDate() < 10) {
+            curr_date = new Date().getFullYear() + "-0" + (new Date().getMonth() + 1) + "-0" + new Date().getDate();
+        }
+        else {
+            curr_date = new Date().getFullYear() + "-0" + (new Date().getMonth() + 1) + "-" + new Date().getDate();
+        }
+    }
+    else {
+        if (new Date().getDate() < 10) {
+            curr_date = new Date().getFullYear() + "-" + (new Date().getMonth() + 1) + "-0" + new Date().getDate();
+        }
+        else {
+            curr_date = new Date().getFullYear() + "-" + (new Date().getMonth() + 1) + "-" + new Date().getDate();
+        }
+
+    }
+    if (new Date().getHours() < 10) {
+        if (new Date().getMinutes() < 10) {
+            curr_time = ("0" + new Date().getHours() + ":0" + new Date().getMinutes());
+        }
+        else {
+            curr_time = ("0" + new Date().getHours() + ":" + new Date().getMinutes());
+        }
+    }
+    else {
+        if (new Date().getMinutes() < 10) {
+            curr_time = (new Date().getHours() + ":0" + new Date().getMinutes());
+        }
+        else {
+            curr_time = (new Date().getHours() + ":" + new Date().getMinutes());
+        }
+    }
+}
+
+
+function userMsgBubble(msg) {
+    const msgbubble = document.createElement("div");
+    msgbubble.innerText = msg;
+    msgbubble.style = "align-self: end; border: 3px solid black; border-radius: 13px; border-top-right-radius: 0; padding: 5px; margin-right: 1%; margin-bottom: 0.5%; max-width: 70%;";
+    return msgbubble;
+}
+function aiMsgBubble(msg) {
+    const msgbubble = document.createElement("div");
+    msgbubble.innerText = msg;
+    msgbubble.style = "align-self: start; border: 3px solid black; border-radius: 13px; border-top-left-radius: 0; padding: 5px; margin-left: 1%; margin-bottom: 0.5%; max-width: 70%;";
+    return msgbubble;
+}
+
+
+function isElementVisible(element = document.getElementsByClassName("windowbody")[0].children[0].children[0].children[0].children[0], partiallyVisible = false) {
+    const { top, left, bottom, right } = element.getBoundingClientRect();
+    const { innerHeight, innerWidth } = window;
+    console.log(partiallyVisible
+        ? ((top > 0 && top < innerHeight) ||
+            (bottom > 0 && bottom < innerHeight)) &&
+        ((left > 0 && left < innerWidth) || (right > 0 && right < innerWidth))
+        : top >= 0 && left >= 0 && bottom <= innerHeight && right <= innerWidth);
+};
+function scrollToElement(element) {
+    element.scrollIntoView(true);
 }

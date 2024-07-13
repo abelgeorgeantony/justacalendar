@@ -37,6 +37,12 @@ app.get("/signup", (req, res) => {
 app.get("/calendar.js", (req, res) => {
     res.sendFile(path.join(__dirname, "assets/js/calendar.js"));
 });
+app.get("/monthcalendar.js", (req, res) => {
+    res.sendFile(path.join(__dirname, "assets/js/monthcalendar.js"));
+});
+app.get("/time.js", (req, res) => {
+    res.sendFile(path.join(__dirname, "assets/js/time.js"));
+});
 app.get("/popups.js", (req, res) => {
     res.sendFile(path.join(__dirname, "assets/js/popups.js"));
 });
@@ -265,6 +271,78 @@ app.post("/upcomingeventrequest", urlencodedParser, async (req, res) => {
         await mongoclient.close();
     }
 });
+app.post("/aichathistoryrequest", urlencodedParser, async (req, res) => {
+    const uname = req.body.username;
+    let lastsentid = Number(req.body.lastreceivedid);
+    //const curr_datetime = new Date(req.body.currentdate + "T" + req.body.currenttime + "Z");
+    //console.log(curr_datetime);
+
+    try {
+        await mongoclient.connect();
+        const chatscollection = mongoclient.db("jac_aichats").collection(uname + "aichats");
+        let singlechat;
+        try {
+            if (lastsentid === -1) {
+                lastsentid = await chatscollection.countDocuments();
+            }
+            else {
+                lastsentid = (lastsentid - 1);
+            }
+            singlechat = await chatscollection.findOne({ "chatid_global": { $eq: lastsentid } });
+            console.log(singlechat);
+        }
+        catch (err) {
+            console.log(err);
+            res.status(200).send({ "chatfound": false, "error": true, "chatsfinished": false });
+            await mongoclient.close();
+            return;
+        }
+        if (singlechat !== null) {
+            res.status(200).send({ "chatfound": true, "error": false, "chatsfinished": false, "chatid": singlechat.chatid_global, "datetime": singlechat.datetime, "chatinitby": singlechat.chatinitby, "usermsg": singlechat.usermsg, "aimsg": singlechat.aimsg });
+        }
+        else {
+            res.status(200).send({ "chatfound": false, "error": false, "chatsfinished": true });
+        }
+    } finally {
+        await mongoclient.close();
+    }
+});
+
+app.post("/aichatmsgsubmit", urlencodedParser, async (req, res) => {
+    const daystart = new Date((req.body.date));
+    const dayend = new Date((req.body.date + "T23:59Z"));
+
+    const uname = req.body.username;
+    const msg = req.body.message;
+    const datetimeofmsg = new Date((req.body.date + "T" + req.body.time + "Z"));
+    const replyFromGemini = await sendMessageToGemini(msg).catch((e) => {
+        console.error(e);
+        //process.exit(1);
+        return;
+    });
+
+    res.status(200).send({ "reply": replyFromGemini });
+    console.log(replyFromGemini);
+
+    try {
+        await mongoclient.connect();
+        const chatscollection = mongoclient.db("jac_aichats").collection(uname + "aichats");
+        try {
+            const newchatid_global = (await chatscollection.countDocuments() + 1);
+            const newchatid_local = (await chatscollection.find({ $and: [{ "datetime": { $gt: daystart } }, { "datetime": { $lt: dayend } }] }).count() + 1);
+            await chatscollection.insertOne({ "chatid_global": newchatid_global, "chatid_local": newchatid_local, "datetime": datetimeofmsg, "chatinitby": "user", "usermsg": msg, "aimsg": replyFromGemini });
+        }
+        catch (err) {
+            console.log(err);
+            //res.status(200).send({ "eventfound": false, "error": true, "eventsfinished": false });
+            await mongoclient.close();
+            return;
+        }
+    } finally {
+        await mongoclient.close();
+    }
+});
+
 
 app.get("/reqtimehop", async (req, res) => {
     const responseFromGemini = await reqtimehopFromGemini().catch((e) => {
@@ -299,6 +377,13 @@ async function reqtimehopFromGemini() {
     }
     return responseData;
 }
+async function sendMessageToGemini(msg) {
+    console.log(msg);
+    let reply = await model.generateContent(msg);
+    reply = reply.response.text();
+    return reply;
+}
+
 
 
 async function loginUser(uname, pword) {

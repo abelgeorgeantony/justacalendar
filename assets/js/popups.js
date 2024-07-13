@@ -288,13 +288,19 @@ function updateEventListofdayOutput() {
         const eventcard = document.createElement("div");
         const ename = document.createElement("h4");
         const edescription = document.createElement("p");
+        const etime = document.createElement("p");
         ename.innerText = eventslist[eventslist.length - 1].name;
         ename.style = "border: 0.5px solid #000; margin: 0;";
         edescription.innerText = eventslist[eventslist.length - 1].description;
-        edescription.style = "margin-top: 1%; margin-bottom: 2%; font-size: 55%;"
-        eventcard.style = "border: 2px solid #000; background:white;";
+        edescription.style = "margin-top: 1%; margin-bottom: 0%; font-size: 55%;"
+        eventcard.style = "border: 2px solid #000; background:white; display: flex; flex-direction: column;";
+        const time = new Date(eventslist[eventslist.length - 1].datetime.slice(0, -1));
+        etime.innerText = formatTime(time.getHours(), time.getMinutes(), 12) + " " + findAmPm(time.getHours());
+        etime.style = "align-self: end; margin-top: 1%; margin-bottom: 2%; margin-right: 1.5%; font-size: 40%; color: #616161;"
+
         eventcard.appendChild(ename);
         eventcard.appendChild(edescription);
+        eventcard.appendChild(etime);
         document.getElementById("eventpopupbody").appendChild(eventcard);
         reqEventListofdayFromDB(clickeddate, eventslist[eventslist.length - 1].eventid);
     }

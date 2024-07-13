@@ -1,34 +1,24 @@
-class myname {
-    constructor(fulln) {
-        this.fullname = fulln;
-        this.shortname = this.reducename(3);
+class label {
+    constructor(fullname) {
+        this.full = fullname;
+        this.short = this.reducename(3);
     }
     reducename(length) {
-        if (length === (this.fullname.length - 1)) {
-            return this.fullname;;
+        if (length === (this.full.length - 1)) {
+            return this.full;
         }
-        else if (length === this.fullname.length || length > this.fullname.length || length === 0) {
-            console.log("Trying to shorten name failed! Invalid length given to shorten");
+        else if (length >= this.full.length || length === 0) {
+            console.log("Trying to shorten label failed! Invalid length given to shorten");
+            return;
         }
         let reduced = "";
         for (let i = 0; i < length; i++) {
-            reduced = reduced + this.fullname[i];
+            reduced = reduced + this.full[i];
         }
         return reduced;
     }
 }
-class randomdate {
-    constructor() {
-        this.date = new Date();
-        this.info = "NO VALUES WERE GIVEN FROM SERVER!"
-        this.isready = false;
-    }
-    setRandomDate(datefromgemini, infobygemini) {
-        this.date = datefromgemini;
-        this.info = infobygemini;
-        this.isready = true;
-    }
-}
+
 class loadingscreen {
     startanimation() {
         const screen = document.getElementById('loadingcontainer');
@@ -98,32 +88,31 @@ class loadingscreen {
         }
     }
 }
-
-
 const loading = new loadingscreen();
-let rdate = new randomdate();
+
+
 const days = [
-    new myname("Sunday"),
-    new myname("Monday"),
-    new myname("Tuesday"),
-    new myname("Wednesday"),
-    new myname("Thursday"),
-    new myname("Friday"),
-    new myname("Saturday")
+    new label("Sunday"),
+    new label("Monday"),
+    new label("Tuesday"),
+    new label("Wednesday"),
+    new label("Thursday"),
+    new label("Friday"),
+    new label("Saturday")
 ];
 const months = [
-    new myname("January"),
-    new myname("February"),
-    new myname("March"),
-    new myname("April"),
-    new myname("May"),
-    new myname("June"),
-    new myname("July"),
-    new myname("August"),
-    new myname("September"),
-    new myname("October"),
-    new myname("November"),
-    new myname("December")
+    new label("January"),
+    new label("February"),
+    new label("March"),
+    new label("April"),
+    new label("May"),
+    new label("June"),
+    new label("July"),
+    new label("August"),
+    new label("September"),
+    new label("October"),
+    new label("November"),
+    new label("December")
 ];
 let displayed_date = new Date();
 
@@ -131,7 +120,6 @@ let displayed_date = new Date();
 function getCookie(nametofind) {
     const cookies = document.cookie.split('; ');
     let cookievalue;
-    //const cookieMap = {};
     cookies.forEach(cookie => {
         const [name, value] = cookie.split('=');
         if (nametofind === name) {
@@ -188,7 +176,7 @@ function goToDate() {
     const inputfields = document.getElementById("datepicker").querySelectorAll("input");
     let monthind;
     for (const [index, month] of months.entries()) {
-        if (month.fullname === inputfields[1].value) {
+        if (month.full === inputfields[1].value) {
             monthind = index;
         }
     }
@@ -256,7 +244,7 @@ function generateCalendarHeading() {
     for (const day of days) {
         const th = document.createElement('th');
         th.innerHTML = "";
-        th.textContent = day.shortname;
+        th.textContent = day.short;
         tr.appendChild(th);
     }
     table.appendChild(tr); // Add header row to table
@@ -326,24 +314,7 @@ function deletetable() {
         removelastrow();
     });
 }
-function addalastrow() {
-    const table = document.getElementById('calendar');
-    const tr = document.createElement('tr'); // Create new table row
-    // Add 7 empty cells
-    for (let i = 0; i < 7; i++) {
-        const cell = document.createElement('td');
-        cell.textContent = "";
-        tr.appendChild(cell);
-    }
-    table.appendChild(tr); // Add the row to the table
-}
-function removelastrow() {
-    const table = document.getElementById('calendar');
-    const rows = table.querySelectorAll('tr');
-    if (rows.length > 1) {
-        rows[rows.length - 1].parentNode.removeChild(rows[rows.length - 1]);
-    }
-}
+
 
 
 let requestedserver = false;
@@ -394,7 +365,7 @@ function addsidebar2content() {
     const css_devicesmall = getComputedStyle(document.querySelector(':root')).getPropertyValue("--devicesmall");
     const cellcontent = [
         "<a href=\"javascript:showdatepicker();\" style=\"background-color: rgb(0, 182, 67)\">" + displayed_date.getDate() + "</a>",
-        "<a href=\"javascript:showdatepicker();\" style=\"background-color: rgb(0, 182, 67)\">" + months[displayed_date.getMonth()].shortname + "</a>",
+        "<a href=\"javascript:showdatepicker();\" style=\"background-color: rgb(0, 182, 67)\">" + months[displayed_date.getMonth()].short + "</a>",
         "<a href=\"javascript:showdatepicker();\" style=\"background-color: rgb(0, 182, 67)\">" + displayed_date.getFullYear() + "</a>",
         "<a href=\"javascript:timeHop();\" style=\"background-color: rgb(0, 160, 246);\">" + "Time<br>Hop" + "</a>"
     ];
@@ -447,104 +418,3 @@ function addsidebar1content() {
     }
 }
 
-
-function fillCalendar(cdate) {
-    deletetable();
-    for (let i = 0; i < weekscount(cdate); i++) {
-        addalastrow();
-    }
-    displayed_date = cdate;
-    const year = cdate.getFullYear();
-    const month = cdate.getMonth();
-    const firstday = new Date(year, month, 1).getDay();
-    const table = document.getElementById('calendar');
-    const cells = table.querySelectorAll('TD'); // assigning td to cells
-    let datecount = 0;
-    for (const [index, cell] of cells.entries()) {
-        if (index === (firstday + datecount)) {
-            datecount++;
-            cell.textContent = datecount;
-            cell.onclick = function () { showeventpopup(this); };
-            if (datecount === cdate.getDate()) {
-                cell.style.border = "4px solid #00b643";
-            }
-            if (cdate.getFullYear() === new Date().getFullYear()) {
-                if (cdate.getMonth() === new Date().getMonth()) {
-                    if (datecount === new Date().getDate()) {
-                        cell.style.backgroundColor = "silver";
-                    }
-                }
-            }
-        }
-        /* If to add anything to the blank cells
-        else {
-            cell.textContent = months[month].fullname[monthlcount];
-            cell.textContent = cell.textContent.toUpperCase();
-            if (months[month].fullname[monthlcount + 1] === undefined) {
-                monthlcount = 0;
-            }
-            else {
-                monthlcount++;
-            }
-        }*/
-        if (month === 1) { //february
-            if (isLeap(year)) {
-                if (datecount === 29) {
-                    datecount = 0;
-                }
-            }
-            else {
-                if (datecount === 28) {
-                    datecount = 0;
-                }
-            }
-        }
-        else if (month === 3 || month === 5 || month === 8 || month === 10) {
-            if (datecount === 30) {
-                datecount = 0;
-            }
-        }
-        else {
-            if (datecount === 31) {
-                datecount = 0;
-            }
-        }
-    }
-}
-
-function weekscount(dateobj) {
-    let month = dateobj.getMonth();
-    let firstday = new Date(dateobj.getFullYear(), dateobj.getMonth(), 1).getDay();
-    if (month === 1) { //february
-        if (isLeap(dateobj.getFullYear())) {
-            return 5;
-        }
-        else {
-            if (firstday === 0) {
-                return 4;
-            }
-            else {
-                return 5;
-            }
-        }
-    }
-    else if (month === 3 || month === 5 || month === 8 || month === 10) {
-        if (firstday === 6) {
-            return 6;
-        }
-        else {
-            return 5;
-        }
-    }
-    else {
-        if (firstday >= 0 && firstday <= 4) {
-            return 5;
-        }
-        else {
-            return 6;
-        }
-    }
-}
-function isLeap(year) {
-    return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
-}
