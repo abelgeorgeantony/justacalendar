@@ -169,7 +169,7 @@ function addAIMsgToOutput(msgtoadd) {
 
 
 
-let upcomingeventslist = [];
+const upcomingeventslist = [];
 function openEvents() {
     const content = document.createElement("div");
     const sidebarbtnscontent = [
@@ -194,7 +194,7 @@ function openEvents() {
     if (upcomingeventslist.length === 0) {
         startTopBarAnimation(null);
         findandsetcurrdate_time();
-        reqUpcomingEvent(curr_date, curr_time, 0);
+        reqUpcomingEvent(curr_date, curr_time, 0, updateUpcomingEventsListOutput);
     }
     else if (upcomingeventslist[upcomingeventslist.length - 1].asjson.eventsfinished === true) {
         printUpcomingEventsList();
@@ -204,13 +204,12 @@ function printUpcomingEventsList() {
     const events = document.getElementsByClassName("windowbody")[0].children[0];
     events.innerHTML = "";
     for (let i = 0; i < upcomingeventslist.length - 1; i++) {
-        console.log(upcomingeventslist[i]);
         events.appendChild(upcomingeventslist[i].ashtml);
     }
 }
 
-var xhttpeventsrequest = new XMLHttpRequest();
-function reqUpcomingEvent(currdate, currtime, lastrec_eventid) {
+const xhttpeventsrequest = new XMLHttpRequest();
+function reqUpcomingEvent(currdate, currtime, lastrec_eventid, UpdateUI) {
     if (xhttpeventsrequest.readyState === 0 || xhttpeventsrequest.readyState === 4) {
         xhttpeventsrequest.open("POST", "/upcomingeventrequest", true);
         xhttpeventsrequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
@@ -219,17 +218,17 @@ function reqUpcomingEvent(currdate, currtime, lastrec_eventid) {
     xhttpeventsrequest.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             const res = JSON.parse(xhttpeventsrequest.response);
-            const event = {
+            const eventfromdb = {
                 ashtml: "",
                 asjson: res
             };
             if (res.eventfound === true) {
-                upcomingeventslist.push(event);
-                updateUpcomingEventsListOutput();
+                upcomingeventslist.push(eventfromdb);
+                UpdateUI();
             }
             else {
-                upcomingeventslist.push(event);
-                updateUpcomingEventsListOutput();
+                upcomingeventslist.push(eventfromdb);
+                UpdateUI();
                 stopTopBarAnimation(null);
             }
         }
@@ -238,33 +237,39 @@ function reqUpcomingEvent(currdate, currtime, lastrec_eventid) {
 function updateUpcomingEventsListOutput() {
     const wbody = document.getElementsByClassName("windowbody")[0];
     if (upcomingeventslist[upcomingeventslist.length - 1].asjson.eventfound === true) {
-        const eventcard = document.createElement("div");
-        const edatetimeinfo = document.createElement("div");
-        const eventinfo = document.createElement("div");
-        const ename = document.createElement("h4");
-        const edescription = document.createElement("p");
-
-        const datetime = new Date(upcomingeventslist[upcomingeventslist.length - 1].asjson.datetime.slice(0, -1));
-        console.log(datetime);
-        const edate = formatDate(datetime.getDate(), (datetime.getMonth() + 1), datetime.getFullYear());
-        const etime = formatTime(datetime.getHours(), datetime.getMinutes(), 12) + " " + findAmPm(datetime.getHours());
-        edatetimeinfo.innerHTML = edate + "<br>" + etime;
-        edatetimeinfo.style = "margin-right: 1%; margin-left: 1%; align-self: center;"
-        ename.innerText = upcomingeventslist[upcomingeventslist.length - 1].asjson.name;
-        ename.style = "border-bottom: 1.5px solid #000; margin: 0; padding-left: 2%; font-size: 200%;";
-        edescription.innerText = upcomingeventslist[upcomingeventslist.length - 1].asjson.description;
-        edescription.style = "padding-left: 2%; margin-top: 1%; margin-bottom: 1.5%; font-size: 95%;";
-
-        eventinfo.appendChild(ename);
-        eventinfo.appendChild(edescription);
-        eventinfo.style = "border-right: 2px solid #000; background:white; display:flex; flex-direction: column; width: 100%";
-        eventcard.style = "border-bottom: 3.5px solid #000; background:white; display:flex; flex-direction: row; justify-content:space-between;";
-        eventcard.appendChild(eventinfo);
-        eventcard.appendChild(edatetimeinfo);
-        wbody.children[0].appendChild(eventcard);
-        upcomingeventslist[upcomingeventslist.length - 1].ashtml = eventcard;
-        reqUpcomingEvent(curr_date, curr_time, upcomingeventslist[upcomingeventslist.length - 1].asjson.eventid);
+        wbody.children[0].appendChild(createEventCard(upcomingeventslist[upcomingeventslist.length - 1]));
+        const id = upcomingeventslist[upcomingeventslist.length - 1].asjson.eventid;
+        reqUpcomingEvent(curr_date, curr_time, id, updateUpcomingEventsListOutput);
     }
+}
+function createEventCard(eventdata) {
+    const eventcard = document.createElement("div");
+    const edatetimeinfo = document.createElement("div");
+    const eventinfo = document.createElement("div");
+    const ename = document.createElement("h4");
+    const edescription = document.createElement("p");
+
+    const datetime = new Date(eventdata.asjson.datetime.slice(0, -1));
+    const edate = formatDate(datetime.getDate(), (datetime.getMonth() + 1), datetime.getFullYear());
+    const etime = formatTime(datetime.getHours(), datetime.getMinutes(), 12) + " " + findAmPm(datetime.getHours());
+
+    edatetimeinfo.innerHTML = edate + "<br>" + etime;
+    edatetimeinfo.style = "margin-right: 1%; margin-left: 1%; align-self: center;"
+    ename.innerText = eventdata.asjson.name;
+    ename.style = "border-bottom: 1.5px solid #000; margin: 0; padding-left: 2%; font-size: 200%;";
+    if(eventdata.asjson.description !== "") {
+        edescription.innerText = eventdata.asjson.description;
+    edescription.style = "padding-left: 2%; margin-top: 1%; margin-bottom: 1.5%; font-size: 95%;";
+    }
+
+    eventinfo.appendChild(ename);
+    eventinfo.appendChild(edescription);
+    eventinfo.style = "border-right: 2px solid #000; background:white; display:flex; flex-direction: column; width: 100%";
+    eventcard.style = "border-bottom: 3.5px solid #000; background:white; display:flex; flex-direction: row; justify-content:space-between;";
+    eventcard.appendChild(eventinfo);
+    eventcard.appendChild(edatetimeinfo);
+    upcomingeventslist[upcomingeventslist.length - 1].ashtml = eventcard;
+    return eventcard;
 }
 function sortEvents() {
     startTopBarAnimation(null);
@@ -296,6 +301,7 @@ function getDateTimeFromCard(ecard) {
 
 
 function openWindow(headingname, content, sidebarbtns) {
+    document.getElementById("aisearchcontainer").style.zIndex = "-999";
     const table = document.getElementById('calendar');
     const datebuttonsbar = document.getElementById('calsidebar2');
     const css_devicesmall = getComputedStyle(document.querySelector(':root')).getPropertyValue("--devicesmall");
@@ -310,6 +316,7 @@ function openWindow(headingname, content, sidebarbtns) {
     setWindowBody(table, content);
 }
 function closeWindow() {
+    document.getElementById("aisearchcontainer").style.zIndex = "999";
     generateCalendarHeading();
     fillCalendar(displayed_date);
     addsidebar2content();
@@ -346,100 +353,6 @@ function setWindowBody(table, content) {
     table.appendChild(windowbody);
 }
 
-
-function formatDate(d, m, y) {
-    let resultdate;
-    if (Number(d) < 10) {
-        resultdate = "0" + d;
-    }
-    else {
-        resultdate = d;
-    }
-    if (Number(m) < 10) {
-        resultdate = resultdate + "/0" + m;
-    }
-    else {
-        resultdate = resultdate + "/" + m;
-    }
-    resultdate = resultdate + "/" + y;
-    return resultdate;
-}
-function formatTime(h, m, outputstyle) {
-    let resulttime;
-    if ((Number(h) > 12) && (Number(outputstyle) === 12)) {
-        h = Number(h) - 12;
-    }
-    if (Number(h) < 10) {
-        resulttime = "0" + h;
-    }
-    else {
-        resulttime = h;
-    }
-    if (Number(m) < 10) {
-        resulttime = resulttime + ":0" + m;
-    }
-    else {
-        resulttime = resulttime + ":" + m;
-    }
-    return resulttime;
-}
-function deformatTime(timestr) {
-    let hourandminute = timestr.split(":");
-    if (hourandminute[1].split(" ")[1] === "pm") {
-        hourandminute[0] = Number(hourandminute[0]) + 12
-    }
-    else {
-        hourandminute[0] = Number(hourandminute[0]);
-    }
-    hourandminute[1] = Number(hourandminute[1].split(" ")[0]);
-    return hourandminute;
-}
-function findAmPm(hour) {
-    if (Number(hour) < 12) {
-        return "am";
-    }
-    return "pm";
-}
-
-
-
-let curr_date;
-let curr_time;
-function findandsetcurrdate_time() {
-    if (new Date().getMonth() < 9) {
-        if (new Date().getDate() < 10) {
-            curr_date = new Date().getFullYear() + "-0" + (new Date().getMonth() + 1) + "-0" + new Date().getDate();
-        }
-        else {
-            curr_date = new Date().getFullYear() + "-0" + (new Date().getMonth() + 1) + "-" + new Date().getDate();
-        }
-    }
-    else {
-        if (new Date().getDate() < 10) {
-            curr_date = new Date().getFullYear() + "-" + (new Date().getMonth() + 1) + "-0" + new Date().getDate();
-        }
-        else {
-            curr_date = new Date().getFullYear() + "-" + (new Date().getMonth() + 1) + "-" + new Date().getDate();
-        }
-
-    }
-    if (new Date().getHours() < 10) {
-        if (new Date().getMinutes() < 10) {
-            curr_time = ("0" + new Date().getHours() + ":0" + new Date().getMinutes());
-        }
-        else {
-            curr_time = ("0" + new Date().getHours() + ":" + new Date().getMinutes());
-        }
-    }
-    else {
-        if (new Date().getMinutes() < 10) {
-            curr_time = (new Date().getHours() + ":0" + new Date().getMinutes());
-        }
-        else {
-            curr_time = (new Date().getHours() + ":" + new Date().getMinutes());
-        }
-    }
-}
 
 
 function userMsgBubble(msg) {

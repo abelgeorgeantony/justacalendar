@@ -5,11 +5,12 @@ const path = require("path");
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const express = require("express");
 const app = express();
-const bodyParser = require('body-parser')
+const bodyParser = require('body-parser');
 const jsonParser = bodyParser.json();
 const urlencodedParser = bodyParser.urlencoded({ extended: false });
+const pipeline = require("node:stream/promises");
+//import { pipeline } from "node:stream/promises";
 const crypto = require("crypto");
-const { totalmem } = require("os");
 
 
 // Access your API key as an environment variable (see "Set up your API key" above)
@@ -34,17 +35,37 @@ app.get("/login", (req, res) => {
 app.get("/signup", (req, res) => {
     res.sendFile(path.join(__dirname, "assets/html/signup.html"));
 });
-app.get("/calendar.js", (req, res) => {
-    res.sendFile(path.join(__dirname, "assets/js/calendar.js"));
+
+
+app.get("/animation.js", (req, res) => {
+    res.sendFile(path.join(__dirname, "assets/js/animation.js"));
+});
+app.get("/authentication.js", (req, res) => {
+    res.sendFile(path.join(__dirname, "assets/js/authentication.js"));
+});
+app.get("/cookies.js", (req, res) => {
+    res.sendFile(path.join(__dirname, "assets/js/cookies.js"));
+});
+app.get("/main.js", (req, res) => {
+    res.sendFile(path.join(__dirname, "assets/js/main.js"));
+});
+app.get("/miscellaneous.js", (req, res) => {
+    res.sendFile(path.join(__dirname, "assets/js/miscellaneous.js"));
 });
 app.get("/monthcalendar.js", (req, res) => {
     res.sendFile(path.join(__dirname, "assets/js/monthcalendar.js"));
 });
+app.get("/popups.js", (req, res) => {
+    res.sendFile(path.join(__dirname, "assets/js/popups.js"));
+});
+app.get("/sidebars.js", (req, res) => {
+    res.sendFile(path.join(__dirname, "assets/js/sidebars.js"));
+});
 app.get("/time.js", (req, res) => {
     res.sendFile(path.join(__dirname, "assets/js/time.js"));
 });
-app.get("/popups.js", (req, res) => {
-    res.sendFile(path.join(__dirname, "assets/js/popups.js"));
+app.get("/timehop.js", (req, res) => {
+    res.sendFile(path.join(__dirname, "assets/js/timehop.js"));
 });
 app.get("/windows.js", (req, res) => {
     res.sendFile(path.join(__dirname, "assets/js/windows.js"));
@@ -55,6 +76,9 @@ app.get("/signup.js", (req, res) => {
 app.get("/login.js", (req, res) => {
     res.sendFile(path.join(__dirname, "assets/js/login.js"));
 });
+
+
+
 app.get("/calendar.css", (req, res) => {
     res.sendFile(path.join(__dirname, "assets/css/calendar.css"));
 });
@@ -64,6 +88,10 @@ app.get("/popups.css", (req, res) => {
 app.get("/signup.css", (req, res) => {
     res.sendFile(path.join(__dirname, "assets/css/signup.css"));
 });
+
+
+
+
 app.get("/user_account_icon_black.png", (req, res) => {
     res.sendFile(path.join(__dirname, "assets/images/user_account_icon_black.png"));
 });
@@ -92,8 +120,7 @@ app.get("/restricted_eye_black.png", (req, res) => {
 
 
 app.post("/signupsubmit", urlencodedParser, async (req, res) => {
-    console.log("signup Request recieved");
-    console.log(req.body);
+    console.log("/signupsubmit Request recieved");
     const username = req.body.username;
     const passwordhash = crypto.pbkdf2Sync(req.body.password, username, 1000, 64, `sha512`).toString(`hex`);
     const email = req.body.email;
@@ -110,20 +137,17 @@ app.post("/signupsubmit", urlencodedParser, async (req, res) => {
             return;
         }
         const authToken = await loginUser(username, req.body.password);
-        console.log("authToken: " + authToken);
         res.status(200).send({ "created": true, "authToken": authToken, "username": username });
     } finally {
         await mongoclient.close();
     }
 });
 app.post("/loginsubmit", urlencodedParser, async (req, res) => {
-    console.log("login Request recieved");
-    console.log(req.body);
+    console.log("/loginsubmit Request recieved");
     const username = req.body.username;
     const password = req.body.password;
     try {
         const authToken = await loginUser(username, password);
-        console.log("authToken: " + authToken);
         res.status(200).send({ "authentic": true, "authToken": authToken, "username": username });
     }
     catch (err) {
@@ -143,8 +167,8 @@ app.post("/checktokenauthenticity", urlencodedParser, async (req, res) => {
         const userscollection = mongoclient.db("jac").collection("users");
         try {
             let result = await userscollection.findOne({ "username": req.body.username }, { _id: 0, username: 0, passwordhash: 0, email: 0, authtoken: 1 });
-            console.log("Authtoken in db:" + result.authtoken);
-            console.log("Authtoken given:" + req.body.authToken);
+            //console.log("Authtoken in db:" + result.authtoken);
+            //console.log("Authtoken given:" + req.body.authToken);
             if (result.authtoken === req.body.authToken) {
                 res.status(200).send({ "authentic": true });
             }
@@ -170,7 +194,6 @@ app.post("/searchusername", urlencodedParser, async (req, res) => {
         await mongoclient.connect();
         const userscollection = mongoclient.db("jac").collection("users");
         const result = await userscollection.findOne({ "username": unametosearch }, { _id: 0, username: 1, passwordhash: 0, email: 0 });
-        console.log(result);
         if (result === null) {
             res.status(200).send({ "available": true });
         }
@@ -187,6 +210,7 @@ app.post("/eventsubmit", urlencodedParser, async (req, res) => {
 
     const uname = req.body.username;
     const datetimeofevent = new Date((req.body.date + "T" + req.body.time + "Z"));
+    const colorofevent = req.body.color;
     const nameofevent = req.body.name;
     const descriptionofevent = req.body.description;
     try {
@@ -195,7 +219,7 @@ app.post("/eventsubmit", urlencodedParser, async (req, res) => {
         try {
             const neweventid_local = (await eventscollection.find({ $and: [{ "datetime": { $gt: daystart } }, { "datetime": { $lt: dayend } }] }).count() + 1);
             const neweventid_global = (await eventscollection.countDocuments() + 1);
-            await eventscollection.insertOne({ "eventid_local": neweventid_local, "eventid_global": neweventid_global, "datetime": datetimeofevent, "name": nameofevent, "description": descriptionofevent });
+            await eventscollection.insertOne({ "eventid_local": neweventid_local, "eventid_global": neweventid_global, "datetime": datetimeofevent, "color": colorofevent, "name": nameofevent, "description": descriptionofevent });
         }
         catch (err) {
             console.log(err);
@@ -212,9 +236,6 @@ app.post("/eventofdayrequest", urlencodedParser, async (req, res) => {
     const uname = req.body.username;
     const daystart = new Date((req.body.date));
     const dayend = new Date((req.body.date + "T23:59Z"));
-
-    console.log(daystart);
-    console.log(dayend);
     const lastsentid = Number(req.body.lastreceivedeventid);
 
     try {
@@ -223,7 +244,6 @@ app.post("/eventofdayrequest", urlencodedParser, async (req, res) => {
         let userevent;
         try {
             userevent = await eventscollection.findOne({ "eventid_local": { $gt: lastsentid }, $and: [{ "datetime": { $gt: daystart } }, { "datetime": { $lt: dayend } }] });
-            console.log(userevent);
         }
         catch (err) {
             console.log(err);
@@ -232,7 +252,7 @@ app.post("/eventofdayrequest", urlencodedParser, async (req, res) => {
             return;
         }
         if (userevent !== null) {
-            res.status(200).send({ "eventfound": true, "eventid": userevent.eventid_local, "datetime": userevent.datetime, "name": userevent.name, "description": userevent.description });
+            res.status(200).send({ "eventfound": true, "eventid": userevent.eventid_local, "datetime": userevent.datetime, "color": userevent.color, "name": userevent.name, "description": userevent.description });
         }
         else {
             res.status(200).send({ "eventfound": false, "error": false, "eventsfinished": true });
@@ -244,7 +264,6 @@ app.post("/eventofdayrequest", urlencodedParser, async (req, res) => {
 app.post("/upcomingeventrequest", urlencodedParser, async (req, res) => {
     const uname = req.body.username;
     const curr_datetime = new Date(req.body.currentdate + "T" + req.body.currenttime + "Z");
-    console.log(curr_datetime);
     const lastsentid = Number(req.body.lastreceivedeventid);
 
     try {
@@ -253,7 +272,6 @@ app.post("/upcomingeventrequest", urlencodedParser, async (req, res) => {
         let userevent;
         try {
             userevent = await eventscollection.findOne({ "datetime": { $gte: curr_datetime }, "eventid_global": { $gt: lastsentid } });
-            console.log(userevent);
         }
         catch (err) {
             console.log(err);
@@ -262,7 +280,7 @@ app.post("/upcomingeventrequest", urlencodedParser, async (req, res) => {
             return;
         }
         if (userevent !== null) {
-            res.status(200).send({ "eventfound": true, "eventid": userevent.eventid_global, "datetime": userevent.datetime, "name": userevent.name, "description": userevent.description });
+            res.status(200).send({ "eventfound": true, "eventid": userevent.eventid_global, "datetime": userevent.datetime, "color": userevent.color, "name": userevent.name, "description": userevent.description });
         }
         else {
             res.status(200).send({ "eventfound": false, "error": false, "eventsfinished": true });
@@ -289,7 +307,7 @@ app.post("/aichathistoryrequest", urlencodedParser, async (req, res) => {
                 lastsentid = (lastsentid - 1);
             }
             singlechat = await chatscollection.findOne({ "chatid_global": { $eq: lastsentid } });
-            console.log(singlechat);
+            //console.log(singlechat);
         }
         catch (err) {
             console.log(err);
@@ -322,7 +340,7 @@ app.post("/aichatmsgsubmit", urlencodedParser, async (req, res) => {
     });
 
     res.status(200).send({ "reply": replyFromGemini });
-    console.log(replyFromGemini);
+    //console.log(replyFromGemini);
 
     try {
         await mongoclient.connect();
@@ -343,6 +361,27 @@ app.post("/aichatmsgsubmit", urlencodedParser, async (req, res) => {
     }
 });
 
+app.get("/aisearchsuggest", async (req, res) => {
+    console.log("/aisearchsuggest Request receivedf");
+    const prompt = "I have a calendar app. A user has entered a query that isn't complete(partial query) into a searchbar in my app. Consider yourself a searchbar and try to complete the partial query that the user has entered. Be careful to structure the suggestions such that they are logical and related to the partial query as much as possible. Limit yourself to generating a maximum of 11 completions for the partial query. Don't generate anything else, generate only completions seperated with a semicolon \";\" also donot use seperators like newline anywhere in your output. 2 consecutive semicolons \";;\" will mark the end of the 11 completions. An example output:g1;2;g3,...,g11;; The partial query:";
+    const partialsearch = req.query.partiallysearched;
+    console.log("partialsearch: "+partialsearch);
+    const completeprompt= prompt + partialsearch;
+    const result = await model.generateContentStream([completeprompt]);
+
+
+    res.writeHead(200, {
+        'Content-Type': 'text/plain',
+        'Transfer-Encoding': 'chunked'
+    });
+    for await (const chunk of result.stream) {
+        console.log(chunk.text() + "1")
+        res.write(chunk.text());
+    }
+
+    //res.send(chunkText);
+});
+
 
 app.get("/reqtimehop", async (req, res) => {
     const responseFromGemini = await reqtimehopFromGemini().catch((e) => {
@@ -350,7 +389,7 @@ app.get("/reqtimehop", async (req, res) => {
         process.exit(1);
     });
     const jsonContent = JSON.stringify(responseFromGemini);
-    console.log(jsonContent);
+    //console.log(jsonContent);
     res.send(jsonContent);
 });
 
@@ -378,7 +417,6 @@ async function reqtimehopFromGemini() {
     return responseData;
 }
 async function sendMessageToGemini(msg) {
-    console.log(msg);
     let reply = await model.generateContent(msg);
     reply = reply.response.text();
     return reply;

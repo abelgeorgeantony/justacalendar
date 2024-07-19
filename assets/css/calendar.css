@@ -25,8 +25,42 @@ body {
   margin-right: -8px;
   margin-top: -8px;
   margin-bottom: -8px;
+  display: grid;
 }
 
+#aisearchcontainer {
+  z-index: -9999;
+  justify-self: center;
+  display: flex;
+  flex-direction: column;
+  height: fit-content;
+  margin-top: 1vh;
+}
+#searchinputdiv {
+  display: flex;
+  flex-direction: row;
+}
+#aisearchinput {
+  justify-self: center;
+  height: 4vh;
+  border: 3px solid black;
+  border-radius: 5px;
+  font-size: 100%;
+}
+#aisearchbutton {
+  align-self: center;
+  margin-left: 2%;
+  padding: 0;
+  font-size: 107%;
+}
+#searchsuggestionsdiv {
+  display: flex;
+  flex-direction: column;
+  min-height: 5vh;
+  background-color: white;
+  border: 2px solid black;
+  border-radius: 10px;
+}
 
 #calendar {
   position: fixed;
@@ -39,6 +73,29 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+}
+
+.eventnotificationdiv {
+  position: absolute;
+  display: flex;
+  flex-direction: row;
+}
+
+.eventnotifactionsquare {
+  height: 11px;
+  width: 11px;
+  border: 1px solid black;
+  margin-right: 6%;
+}
+
+#animationupdatemessage {
+  position: fixed;
+  margin-top: 93vh;
+  margin-left: 10vw;
+  padding: 3px;
+  border-radius: 2px;
+  background-color: #c0c0c0;
+  color: black;
 }
 
 .calsidebar {
@@ -82,6 +139,12 @@ body {
   border: 0.5vmin solid #000000;
   font-size: 2vw;
   background-color: #c0c0c0;
+}
+
+#calendar th a:link,
+#calendar th a:visited {
+  text-decoration: none;
+  color: blue;
 }
 
 .calsidebar tr td {
@@ -167,6 +230,23 @@ body {
     --devicesmall: true;
   }
 
+
+  .eventnotificationdiv {
+    margin-left: -2px;
+  }
+
+  #aisearchcontainer {
+    margin-top: 1vh;
+  }
+
+  #aisearchinput {
+    height: 3vh;
+  }
+
+  #aisearchbutton {
+    font-size: 138%;
+  }
+
   .calsidebar {
     width: 90vw;
     height: 10vh;
@@ -202,6 +282,11 @@ body {
     width: 90vw;
     height: 60vh;
     margin: 0 auto;
+  }
+
+  #animationupdatemessage {
+    margin-top: 77.5vh;
+    margin-left: 5.5vw;
   }
 
   #calendar tr td {

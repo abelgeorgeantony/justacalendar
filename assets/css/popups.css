@@ -84,7 +84,7 @@
     margin-top: 1%;
     margin-bottom: 1%;
     margin-left: 1%;
-    font-size: 250%;
+    font-size: 185%;
 }
 
 #datepicker label {
@@ -140,7 +140,7 @@
     margin-left: 2.1%;
     padding-top: 1.5%;
     padding-bottom: 1.5%;
-    font-size: 250%;
+    font-size: 205%;
     border: 0px none rgb(54, 175, 255);
     border-top-left-radius: 10px;
 }
@@ -261,16 +261,21 @@ input.eventinputfield {
 
     #datepicker,
     #eventpopup {
-        width: 72vw;
+        width: 78vw;
+    }
+    input.eventinputfield {
+        width: 58%;
     }
 
+    #datepicker h3 {
+        font-size: 240%;
+    }
     #datepicker label,
     #eventpopup label {
         font-size: 200%;
         margin-bottom: -5.5%;
     }
 
-    #datepicker input,
     #datepicker input {
         height: 4vh;
         width: 97%;
@@ -279,6 +284,10 @@ input.eventinputfield {
     #datebutton {
         width: 55% !important;
         font-size: 5.5vw !important;
+    }
+
+    #eventpopup {
+        margin-left: -2%;
     }
 
     #loadingtext {

@@ -7,10 +7,17 @@
     <title>Month Calendar</title>
     <link rel="stylesheet" href="calendar.css">
     <link rel="stylesheet" href="popups.css">
-    <script src="popups.js"></script>
-    <script src="windows.js"></script>
+    <script src="animation.js"></script>
+    <script src="authentication.js"></script>
+    <script src="cookies.js"></script>
+    <script src="main.js"></script>
+    <script src="miscellaneous.js"></script>
     <script src="monthcalendar.js"></script>
-    <script src="calendar.js"></script>
+    <script src="popups.js"></script>
+    <script src="sidebars.js"></script>
+    <script src="time.js"></script>
+    <script src="timehop.js"></script>
+    <script src="windows.js"></script>
 </head>
 
 <body onload="isLoggedIn(loadTable)">
@@ -62,6 +69,13 @@
         </div>
     </div>
     <div id="tablescontainer">
+        <div id="aisearchcontainer">
+            <div id="searchinputdiv">
+                <input type="text" name="aisearchbar" id="aisearchinput" oninput="suggestSearch()"
+                    placeholder="Search with AI">
+                <button id="aisearchbutton" type="button">&#x1F50D;</button>
+            </div>
+        </div>
         <table id="calsidebar1" class="calsidebar"></table>
         <table id="calendar"></table>
         <table id="calsidebar2" class="calsidebar"></table>

@@ -14,7 +14,7 @@ function getCookie(nametofind) {
 function showdatepicker() {
     const inputfields = document.getElementById("datepicker").querySelectorAll("input");
     inputfields[0].value = displayed_date.getDate();
-    inputfields[1].value = months[displayed_date.getMonth()].fullname;
+    inputfields[1].value = months[displayed_date.getMonth()].full;
     inputfields[2].value = displayed_date.getFullYear();
     dragPopUp(document.getElementById("datepicker"));
     document.getElementById("datepickercontainer").style.zIndex = "9";
@@ -33,7 +33,6 @@ function hidedatepicker() {
         document.getElementById("datepicker").style.top = "50%";
         document.getElementById("datepicker").style.left = "50%";
         document.getElementById("datepicker").style.transform = 'translate(-50%, -50%)';
-        //document.getElementById("datepicker").style.transform = "translateY(-50%)";
     }
 }
 
@@ -148,12 +147,20 @@ function switchtoEventAdder() {
     document.getElementById("eventsDropdown").children[1].innerText = "Info by AI";
     document.getElementById("eventsDropdown").children[1].href = "javascript:switchtoInfoByAI();";
 
+    const topsection = document.createElement("div");
+    const tlsection = document.createElement("div");
+    const trsection = document.createElement("div");
+
     const eventdateinputtitle = document.createElement("h4");
     const eventdateinput = document.createElement("input");
     const eventtimeinputtitle = document.createElement("h4");
     const eventtimeinput = document.createElement("input");
     const eventnameinputtitle = document.createElement("h4");
     const eventnameinput = document.createElement("input");
+    const eventcolorinputtitle = document.createElement("h4");
+    const eventcolorinput = document.createElement("input");
+    const predefinedcolors = document.createElement("div");
+
     const eventdescriptiontitle = document.createElement("h4");
     const eventdescription = document.createElement("textarea");
     const addeventbtn = document.createElement("button");
@@ -163,6 +170,7 @@ function switchtoEventAdder() {
     eventdateinput.type = "date";
     eventdateinput.value = clickeddate;
     eventdateinput.classList.add("eventinputfield");
+    eventdateinput.style = "width: 80%;";
 
     eventtimeinputtitle.innerText = "Time:";
     eventtimeinputtitle.classList.add("eventinputfieldtitle");
@@ -170,11 +178,21 @@ function switchtoEventAdder() {
     eventtimeinput.value = formatTime(new Date().getHours(), new Date().getMinutes(), 24);
     console.log(eventtimeinput.value);
     eventtimeinput.classList.add("eventinputfield");
+    eventtimeinput.style = "width: 80%;";
+
+    eventcolorinputtitle.innerText = "Color:";
+    eventcolorinputtitle.classList.add("eventinputfieldtitle");
+    //predefinedcolors.
+    eventcolorinput.type = "color";
+    eventcolorinput.value = "#ff0000";
+    eventcolorinput.classList.add("eventinputfield");
+    eventcolorinput.style = "width: 100%;";
 
     eventnameinputtitle.innerText = "Event Name:";
     eventnameinputtitle.classList.add("eventinputfieldtitle");
     eventnameinput.type = "text";
     eventnameinput.classList.add("eventinputfield");
+    eventnameinput.style = "width: 80%;";
 
     eventdescriptiontitle.innerText = "Event Description:";
     eventdescriptiontitle.classList.add("eventinputfieldtitle");
@@ -185,12 +203,20 @@ function switchtoEventAdder() {
     addeventbtn.innerText = "Add the Event!";
     addeventbtn.onclick = function () { addEventToDB(); };
 
-    document.getElementById("eventpopupbody").appendChild(eventdateinputtitle);
+    topsection.style = "display: flex; flex-direction: row;";
+    tlsection.style = "display: flex; flex-direction: column;";
+    trsection.style = "display: flex; flex-direction: column; width: 45%;";
+
+    tlsection.append(eventdateinputtitle, eventdateinput, eventtimeinputtitle, eventtimeinput, eventnameinputtitle, eventnameinput);
+    trsection.append(eventcolorinputtitle, predefinedcolors, eventcolorinput);
+    topsection.append(tlsection, trsection);
+    /*document.getElementById("eventpopupbody").appendChild(eventdateinputtitle);
     document.getElementById("eventpopupbody").appendChild(eventdateinput);
     document.getElementById("eventpopupbody").appendChild(eventtimeinputtitle);
     document.getElementById("eventpopupbody").appendChild(eventtimeinput);
     document.getElementById("eventpopupbody").appendChild(eventnameinputtitle);
-    document.getElementById("eventpopupbody").appendChild(eventnameinput);
+    document.getElementById("eventpopupbody").appendChild(eventnameinput);*/
+    document.getElementById("eventpopupbody").appendChild(topsection);
     document.getElementById("eventpopupbody").appendChild(eventdescriptiontitle);
     document.getElementById("eventpopupbody").appendChild(eventdescription);
     document.getElementById("eventpopupbody").appendChild(addeventbtn);
@@ -214,7 +240,7 @@ function switchtoInfoByAI() {
     aiwarning.style = "margin: 2%"
     aiwarning.innerHTML = "&#8505; Information generated by AI is not trustable!";
     document.getElementById("eventpopupbody").parentElement.appendChild(aiwarning);
-    clickeddate = displayed_date;
+    //clickeddate = displayed_date;
 }
 function showEventsDropdown() {
     document.getElementById("eventsDropdown").classList.toggle("show");
@@ -233,21 +259,23 @@ function closeEventsDropdown() {
 
 var xhttpeventsubmit = new XMLHttpRequest();
 function addEventToDB() {
-    let dateofevent = document.getElementById("eventpopupbody").children[1].value;
-    let timeofevent = document.getElementById("eventpopupbody").children[3].value;
-    let nameofevent = document.getElementById("eventpopupbody").children[5].value;
-    let descriptionofevent = document.getElementById("eventpopupbody").children[7].value;
-
+    let dateofevent = document.getElementById("eventpopupbody").children[0].children[0].children[1].value;
+    let timeofevent = document.getElementById("eventpopupbody").children[0].children[0].children[3].value;
+    let colorofevent = document.getElementById("eventpopupbody").children[0].children[1].children[2].value;
+    let nameofevent = document.getElementById("eventpopupbody").children[0].children[0].children[5].value;
+    let descriptionofevent = document.getElementById("eventpopupbody").children[2].value;
     if (xhttpeventsubmit.readyState === 0 || xhttpeventsubmit.readyState === 4) {
         startTopBarAnimation(document.getElementById("eventpopupbody").children[document.getElementById("eventpopupbody").children.length - 1]);
         xhttpeventsubmit.open("POST", "/eventsubmit", true);
         xhttpeventsubmit.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        xhttpeventsubmit.send("username=" + getCookie("username") + "&date=" + dateofevent + "&time=" + timeofevent + "&name=" + nameofevent + "&description=" + descriptionofevent);
+        xhttpeventsubmit.send("username=" + getCookie("username") + "&date=" + dateofevent + "&time=" + timeofevent + "&color=" + colorofevent + "&name=" + nameofevent + "&description=" + descriptionofevent);
     }
     xhttpeventsubmit.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             const result = JSON.parse(xhttpeventsubmit.response);
             if (result.eventadded === true) {
+                upcomingeventslist.length = 0;
+                fillCalendar(displayed_date);
                 switchtoEventList();
                 stopTopBarAnimation(document.getElementById("eventpopupbody").children[document.getElementById("eventpopupbody").children.length - 1]);
             }
@@ -303,20 +331,5 @@ function updateEventListofdayOutput() {
         eventcard.appendChild(etime);
         document.getElementById("eventpopupbody").appendChild(eventcard);
         reqEventListofdayFromDB(clickeddate, eventslist[eventslist.length - 1].eventid);
-    }
-}
-
-function startTopBarAnimation(element) {
-    if (element !== null && element !== undefined) {
-        element.setAttribute("disabled", "true");
-    }
-    document.querySelector(".eventloadingcontainer").style.zIndex = "99";
-    document.querySelector(".loadingrunner").style.animationIterationCount = "infinite";
-}
-function stopTopBarAnimation(element) {
-    document.querySelector(".eventloadingcontainer").style.zIndex = "-99";
-    document.querySelector(".loadingrunner").style.animationIterationCount = "0";
-    if (element !== null && element !== undefined) {
-        element.removeAttribute("disabled");
     }
 }
