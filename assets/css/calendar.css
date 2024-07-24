@@ -176,7 +176,6 @@ body {
 #useraccountimg {
   content: url("/user_account_icon_black.png");
 }
-
 #useraccountbtn:hover #useraccountimg {
   content: url("/user_account_icon_white.png");
 }
@@ -184,7 +183,6 @@ body {
 #aichatimg {
   content: url("/aichat_icon_black.png");
 }
-
 #aichatbtn:hover #aichatimg {
   content: url("/aichat_icon_white.png");
 }
@@ -192,9 +190,15 @@ body {
 #eventslistimg {
   content: url("/events_icon_black.png");
 }
-
 #eventslistbtn:hover #eventslistimg {
   content: url("/events_icon_white.png");
+}
+
+#shortcutsimg {
+  content: url("/shortcuts_icon_black.png");
+}
+#shortcutsbtn:hover #shortcutsimg {
+  content: url("/shortcuts_icon_white.png");
 }
 
 

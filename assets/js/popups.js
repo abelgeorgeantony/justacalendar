@@ -38,7 +38,7 @@ function hidedatepicker() {
 
 let clickeddate;
 function showeventpopup(element) {
-    if (element !== null) {
+    if (element.tagName === "TD") {
         console.log(element);
         clickeddate = displayed_date.getFullYear();
         if (displayed_date.getMonth() < 9) {
@@ -56,6 +56,9 @@ function showeventpopup(element) {
         console.log(clickeddate);
         switchtoEventList();
     }
+    else if(element === "addanevent") {
+        switchtoEventAdder();
+    }
     else {
         clickeddate = element;
         switchtoInfoByAI();
@@ -65,6 +68,8 @@ function showeventpopup(element) {
 }
 function hideeventpopup() {
     if (document.getElementById("eventpopupbody").parentElement.children.length === 3) {
+        //If the event popup was in infobyai mode then this branch
+        //deletes the ai warning that's shown at the bottom
         document.getElementById("eventpopupbody").parentElement.removeChild(document.getElementById("eventpopupbody").parentElement.children[2]);
     }
     document.getElementById("eventpopupbody").innerHTML = "";

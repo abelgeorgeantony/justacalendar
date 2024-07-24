@@ -281,11 +281,15 @@ function submitDetails(username, password, email) {
                 const expirydate = new Date();
                 expirydate.setTime(expirydate.getTime() + (4 * 24 * 60 * 60 * 1000));
                 let expires = "expires=" + expirydate.toUTCString();
-                //const time = new Date(new Date().getFullYear(), new Date().getMonth() + 1, new Date().getDate() + 4);
-                //const cookiesettings = "expires=" + time.getDay() + ", " + time.getDate() + " " + months[time.getMonth()].shortname + " " + time.getFullYear() + " 12:00:00 UTC; SameSite=Strict";
                 const cookiesettings = expires + "; SameSite=Strict" + "; path=/; domain=" + window.location.hostname;
                 document.cookie = "username=" + account.username + "; " + cookiesettings;
                 document.cookie = "authToken=" + account.authToken + "; " + cookiesettings;
+                localStorage.clear();
+                //localStorage.setItem("sc_btnname_gotocurrentdate","Current Date");
+                //localStorage.setItem("sc_fnname_gotocurrentdate","updatedate()");
+                //localStorage.setItem("sc_btnname_addanevent","Add An Event");
+                //localStorage.setItem("sc_fnname_addanevent","switchtoEventAdder()");
+                //localStorage.setItem("shortcuts_count",localStorage.length);
                 window.location.href = "/home";
             }
             else {

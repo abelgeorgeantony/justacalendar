@@ -1,12 +1,12 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Month Calendar</title>
-    <link rel="stylesheet" href="calendar.css">
-    <link rel="stylesheet" href="popups.css">
+    <link rel="stylesheet" href="calendar.css" />
+    <link rel="stylesheet" href="popups.css" />
     <script src="animation.js"></script>
     <script src="authentication.js"></script>
     <script src="cookies.js"></script>
@@ -26,53 +26,56 @@
         <h1 id="loadingtext">></h1>
     </div>
     <div class="eventloadingcontainer">
-        <div class="loadingrunner">
-        </div>
+        <div class="loadingrunner"></div>
     </div>
     <div class="popupcontainer" id="datepickercontainer">
         <div id="datepicker">
             <div class="popupheader" id="datepickerheader">
                 <h3>Date Picker</h3>
-                <button id="popupclosebutton" onclick="hidedatepicker()">X</button>
+                <button id="popupclosebutton" onclick="hidedatepicker()">
+                    X
+                </button>
             </div>
             <label for="date">Date:</label>
-            <br>
-            <input type="number" id="date" name="date" onchange="goToDate()" min="1" max="30">
-            <br>
+            <br />
+            <input type="number" id="date" name="date" onchange="goToDate()" min="1" max="31" />
+            <br />
             <label for="month">Month:</label>
-            <br>
-            <input list="months" id="month" onchange="goToDate()">
-            <br>
+            <br />
+            <input list="months" id="month" onchange="goToDate()" />
+            <br />
             <label for="year">Year:</label>
-            <br>
-            <input type="number" id="year" name="year" onchange="goToDate()" min="1" max="3000">
-            <br>
-            <input type="button" id="datebutton" value="Go to date!" onclick="goToDate(); hidedatepicker()">
-            <br>
+            <br />
+            <input type="number" id="year" name="year" onchange="goToDate()" min="1" max="3000" />
+            <br />
+            <input type="button" id="datebutton" value="Go to date!" onclick="goToDate(); hidedatepicker()" />
+            <br />
         </div>
     </div>
     <div class="popupcontainer" id="eventpopupcontainer">
         <div id="eventpopup">
             <div class="popupheader" id="eventpopupheader">
                 <div class="dropdown">
-                    <button onclick="showEventsDropdown()" class="dropbtn" id="eventsdropbtn">Events&#11167;</button>
+                    <button onclick="showEventsDropdown()" class="dropbtn" id="eventsdropbtn">
+                        Events&#11167;
+                    </button>
                     <div id="eventsDropdown" class="dropdown-content">
                         <a href="javascript:switchtoEventAdder();">Add Event</a>
                         <a href="javascript:switchtoInfoByAI();">Info by AI</a>
                     </div>
                 </div>
-                <button id="popupclosebutton" onclick="hideeventpopup()">X</button>
+                <button id="popupclosebutton" onclick="hideeventpopup()">
+                    X
+                </button>
             </div>
-            <div id="eventpopupbody">
-
-            </div>
+            <div id="eventpopupbody"></div>
         </div>
     </div>
     <div id="tablescontainer">
         <div id="aisearchcontainer">
             <div id="searchinputdiv">
                 <input type="text" name="aisearchbar" id="aisearchinput" oninput="suggestSearch()"
-                    placeholder="Search with AI">
+                    placeholder="Search with AI" />
                 <button id="aisearchbutton" type="button">&#x1F50D;</button>
             </div>
         </div>
@@ -83,30 +86,43 @@
 </body>
 <script>
     window.onclick = function (event) {
-        if (!event.target.matches('.dropbtn')) {
-            var dropdowns = document.getElementsByClassName("dropdown-content");
+        if (!event.target.matches(".dropbtn")) {
+            var dropdowns =
+                document.getElementsByClassName("dropdown-content");
             var i;
             for (i = 0; i < dropdowns.length; i++) {
                 var openDropdown = dropdowns[i];
-                if (openDropdown.classList.contains('show')) {
-                    openDropdown.classList.remove('show');
+                if (openDropdown.classList.contains("show")) {
+                    openDropdown.classList.remove("show");
                 }
             }
         }
-    }
+    };
 
-    document.getElementById("eventpopupheader").addEventListener("mousedown", () => {
-        document.getElementById("eventpopupheader").style.cursor = "grabbing";
-    });
-    document.getElementById("eventpopupheader").addEventListener("mouseup", () => {
-        document.getElementById("eventpopupheader").style.cursor = "grab";
-    });
-    document.getElementById("datepickerheader").addEventListener("mousedown", () => {
-        document.getElementById("datepickerheader").style.cursor = "grabbing";
-    });
-    document.getElementById("datepickerheader").addEventListener("mouseup", () => {
-        document.getElementById("datepickerheader").style.cursor = "grab";
-    });
+    document
+        .getElementById("eventpopupheader")
+        .addEventListener("mousedown", () => {
+            document.getElementById("eventpopupheader").style.cursor =
+                "grabbing";
+        });
+    document
+        .getElementById("eventpopupheader")
+        .addEventListener("mouseup", () => {
+            document.getElementById("eventpopupheader").style.cursor =
+                "grab";
+        });
+    document
+        .getElementById("datepickerheader")
+        .addEventListener("mousedown", () => {
+            document.getElementById("datepickerheader").style.cursor =
+                "grabbing";
+        });
+    document
+        .getElementById("datepickerheader")
+        .addEventListener("mouseup", () => {
+            document.getElementById("datepickerheader").style.cursor =
+                "grab";
+        });
 </script>
 
 <datalist id="months">

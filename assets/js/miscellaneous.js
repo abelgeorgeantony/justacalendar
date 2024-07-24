@@ -17,6 +17,26 @@ class label {
         }
         return reduced;
     }
+    matchesSomehow(name) {
+        console.log("name: "+name);
+        if((name.length > this.full.length) || (name.length < this.short.length)) {
+            return false;
+        }
+        else if ((name === this.full) || (name === this.short)) {
+            return true;
+        }
+        let matchingletters = 0;
+        for (let i = 0; i < name.length; i++) {
+            if ((name[i] === this.full[i].toUpperCase()) || (name[i] === this.full[i].toLowerCase())) {
+                console.log("matching");
+                matchingletters++;
+            }
+        }
+        if(matchingletters === name.length) {
+            return true;
+        }
+        return false;
+    }
 }
 
 function hextorgb(hex) {
@@ -51,19 +71,19 @@ function copyObj(source, deep) {
 
 
 function printAllNodes(n) {
-    for(let i = 0; i < n.length; i++) {
+    for (let i = 0; i < n.length; i++) {
         printCellColors(n[i]);
     }
 }
 function printCellColors(grid) {
     let output = "";
-    for(let i = 0; i < grid.length; i++){
-        for(let j = 0; j < grid[0].length; j++) {
-            if(grid[i][j].textContent === "TO") {
+    for (let i = 0; i < grid.length; i++) {
+        for (let j = 0; j < grid[0].length; j++) {
+            if (grid[i][j].textContent === "TO") {
                 output = output + grid[i][j].textContent + "|";
             }
-            else if(grid[i][j].textContent !== "") {
-                output = output +" "+ grid[i][j].textContent + "|";
+            else if (grid[i][j].textContent !== "") {
+                output = output + " " + grid[i][j].textContent + "|";
             }
             else {
                 output = output + "__|";

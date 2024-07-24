@@ -2,6 +2,7 @@ let displayed_date = new Date();
 
 
 function loadTable(authenticated) {
+    //localStorage.clear();
     if (authenticated === true) {
         document.querySelector(":root").style.setProperty("--smalldevicethsize", "4.5vw");
         const currentdate = new Date();

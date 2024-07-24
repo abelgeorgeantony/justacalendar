@@ -34,7 +34,11 @@ function goToDate() {
     const inputfields = document.getElementById("datepicker").querySelectorAll("input");
     let monthind;
     for (const [index, month] of months.entries()) {
-        if (month.full === inputfields[1].value) {
+        /*if (month.full === inputfields[1].value) {
+            monthind = index;
+        }*/
+
+        if(month.matchesSomehow(inputfields[1].value)) {
             monthind = index;
         }
     }
@@ -43,6 +47,13 @@ function goToDate() {
     updatedate(year, monthind, date);
 }
 function updatedate(year, monthindex, date) {
+    if((year === null || year === undefined) && (monthindex === null|| monthindex === undefined) && (date === null || date === undefined)) {
+        console.log("Date info to update towards is either null or undefined; proceeding to update to current date!");
+        year = new Date().getFullYear();
+        monthindex = new Date().getMonth();
+        date = new Date().getDate();
+    }
+    console.log("Y:"+year+"M:"+monthindex+"D:"+date);
     let good_date = false;
     if (monthindex === 1) { //february
         if (isLeap(year) === true) {
@@ -169,7 +180,6 @@ function addNotificationSquares() {
     }
     else if (upcomingeventslist[upcomingeventslist.length - 1].asjson.eventsfinished === true) {
         printUpcomingNotificationSquares();
-        console.log("hello");
     }
 }
 

@@ -81,6 +81,7 @@ function submitDetails(username, password) {
                 const cookiesettings = expires + "; SameSite=Strict" + "; path=/; domain=" + window.location.hostname;
                 document.cookie = "username=" + login.username +"; "+cookiesettings;
                 document.cookie = "authToken=" + login.authToken +"; "+cookiesettings;
+                localStorage.clear();
                 window.location.href = "/home";
             }
             else {
