@@ -11,9 +11,13 @@ const urlencodedParser = bodyParser.urlencoded({ extended: false });
 const pipeline = require("node:stream/promises");
 const crypto = require("crypto");
 
-// Access your API key as an environment variable (see "Set up your API key" above)
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const flashmodel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const promodel = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+
+const BASE_GCALENDAR_URL = "https://www.googleapis.com/calendar/v3/calendars";
+const BASE_GCALENDAR_ID_FOR_PUBLIC_HOLIDAY = "holiday@group.v.calendar.google.com"; // Calendar Id. This is public but apparently not documented anywhere officialy.
+const GCALENDARAPI_KEY = process.env.GOOGLE_CALENDAR_API_KEY;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const uri = "mongodb://127.0.0.1:27017/";
@@ -64,6 +68,9 @@ app.get("/timehop.js", (req, res) => {
 });
 app.get("/windows.js", (req, res) => {
   res.sendFile(path.join(__dirname, "assets/js/windows.js"));
+});
+app.get("/shortcuts.js", (req, res) => {
+  res.sendFile(path.join(__dirname, "assets/js/shortcuts.js"));
 });
 app.get("/signup.js", (req, res) => {
   res.sendFile(path.join(__dirname, "assets/js/signup.js"));
@@ -172,8 +179,6 @@ app.post("/checktokenauthenticity", urlencodedParser, async (req, res) => {
         { username: req.body.username },
         { _id: 0, username: 0, passwordhash: 0, email: 0, authtoken: 1 },
       );
-      //console.log("Authtoken in db:" + result.authtoken);
-      //console.log("Authtoken given:" + req.body.authToken);
       if (result.authtoken === req.body.authToken) {
         res.status(200).send({ authentic: true });
       } else {
@@ -189,7 +194,29 @@ app.post("/checktokenauthenticity", urlencodedParser, async (req, res) => {
     await mongoclient.close();
   }
 });
+app.post("/fetchspecialdays", urlencodedParser, async (req, res) => {
+  console.log("/fetchspecialdays Request received");
+  const GCALENDAR_REGION = "en." + req.body.region;
+  const viewingyear = Number(req.body.viewingyear);
+  console.log(GCALENDAR_REGION);
+  console.log(viewingyear);
 
+  const timeMin = new Date(viewingyear + "-01-01");
+  const timeMax = new Date((viewingyear + 1) + "-01-01");
+  console.log("Searching with timeMin.ISO=" + timeMin.toISOString());
+  console.log("Searching with timeMax.ISO=" + timeMax.toISOString());
+  const gcalendar_url = (BASE_GCALENDAR_URL + "/" + GCALENDAR_REGION + "%23" + BASE_GCALENDAR_ID_FOR_PUBLIC_HOLIDAY + "/events?key=" + GCALENDARAPI_KEY + "&timeMin=" + timeMin.toISOString() + "&timeMax=" + timeMax.toISOString() + "&singleEvents=true&orderBy=startTime");
+  let holidays = [];
+  await fetch(gcalendar_url).then(response => response.json()).then(data => {
+    const complexdata = data.items;
+    console.log(complexdata.length);
+    for (let i = 0; i < complexdata.length; i++) {
+      holidays.push({"name": complexdata[i].summary, "date": complexdata[i].start.date});
+    }
+  })
+  console.log(holidays);
+  res.status(200).send(holidays);
+});
 app.post("/searchusername", urlencodedParser, async (req, res) => {
   const unametosearch = req.body.uname;
   try {
@@ -209,6 +236,7 @@ app.post("/searchusername", urlencodedParser, async (req, res) => {
   }
 });
 app.post("/eventsubmit", urlencodedParser, async (req, res) => {
+  console.log("/eventsubmit Request received");
   const daystart = new Date(req.body.date);
   const dayend = new Date(req.body.date + "T23:59Z");
 
@@ -223,16 +251,48 @@ app.post("/eventsubmit", urlencodedParser, async (req, res) => {
       .db("jac_events")
       .collection(uname + "events");
     try {
-      const neweventid_local =
-        (await eventscollection
-          .find({
+      const localmaxid_pipeline = [
+        {
+          $match: {
             $and: [
-              { datetime: { $gt: daystart } },
-              { datetime: { $lt: dayend } },
-            ],
-          })
-          .count()) + 1;
-      const neweventid_global = (await eventscollection.countDocuments()) + 1;
+              { datetime: { $gte: daystart } }, // Replace 'date' with the name of your date attribute
+              { datetime: { $lt: dayend } } // Replace 'date' with the name of your date attribute
+            ]
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            maxValue: { $max: "$eventid_local" } // Replace 'attribute' with the name of your attribute
+          }
+        }
+      ];
+      const localmaxid_result = await eventscollection.aggregate(localmaxid_pipeline).toArray();
+      let neweventid_local = 0;
+      if (localmaxid_result[0] === undefined) {
+        neweventid_local = 1;
+      }
+      else {
+        neweventid_local = Number(localmaxid_result[0].maxValue) + 1;
+      }
+
+      const globalmaxid_pipeline = [
+        {
+          $group: {
+            _id: null,
+            maxValue: { $max: '$eventid_global' }
+          }
+        }
+      ];
+      const globalmaxid_result = await eventscollection.aggregate(globalmaxid_pipeline).toArray();
+      let neweventid_global = 0;
+      if (globalmaxid_result[0] === undefined) {
+        neweventid_global = 1;
+      }
+      else {
+        neweventid_global = Number(globalmaxid_result[0].maxValue) + 1;
+      }
+      //(await eventscollection.countDocuments()) + 1;
       await eventscollection.insertOne({
         eventid_local: neweventid_local,
         eventid_global: neweventid_global,
@@ -248,6 +308,25 @@ app.post("/eventsubmit", urlencodedParser, async (req, res) => {
       return;
     }
     res.status(200).send({ eventadded: true });
+  } finally {
+    await mongoclient.close();
+  }
+});
+app.delete("/deletesingleevent", urlencodedParser, async (req, res) => {
+  console.log("/deletesingleevent Request received");
+  const uname = req.body.username;
+  const idtodelete = Number(req.body.globalidtodelete);
+  console.log(idtodelete);
+  try {
+    await mongoclient.connect();
+    const eventscollection = mongoclient.db("jac_events").collection(uname + "events");
+    const result = await eventscollection.deleteOne({ eventid_global: idtodelete });
+    console.log(result);
+    if (result.deletedCount === 1) {
+      res.status(200).send({ deleted: true });
+    } else {
+      res.status(200).send({ deleted: false });
+    }
   } finally {
     await mongoclient.close();
   }
@@ -515,14 +594,24 @@ app.post("/shortcutsrequest", urlencodedParser, async (req, res) => {
   }
 });
 
+const functions_list = [
+  { fncall: "updatedate();", fndescription: "This function call will update the calendar display to a specified date. The dates are specified by passing in the parameters - year, monthindex, date. The monthindex is like a 0 based array indexing. January is 0 and December is 11. Example call: updatedate(2024, 3, 12); This will update the calendar display to display the April of 2024. Passing in null will update to the current date of the device." },
+];
+app.post("/brewshortcutusingai", urlencodedParser, async (req, res) => {
+  console.log("/brewshortcutusingai Request received");
+  const description = req.body.description;
+});
+
+
+
 app.get("/aisearchsuggest", async (req, res) => {
-  console.log("/aisearchsuggest Request receivedf");
+  console.log("/aisearchsuggest Request received");
   const prompt =
     'I have a calendar app. A user has entered a query that isn\'t complete(partial query) into a searchbar in my app. Consider yourself a searchbar and try to complete the partial query that the user has entered. Be careful to structure the suggestions such that they are logical and related to the partial query as much as possible. Limit yourself to generating a maximum of 11 completions for the partial query. Don\'t generate anything else, generate only completions seperated with a semicolon ";" also donot use seperators like newline anywhere in your output. 2 consecutive semicolons ";;" will mark the end of the 11 completions. An example output:g1;2;g3,...,g11;; The partial query:';
   const partialsearch = req.query.partiallysearched;
   console.log("partialsearch: " + partialsearch);
   const completeprompt = prompt + partialsearch;
-  const result = await model.generateContentStream([completeprompt]);
+  const result = await flashmodel.generateContentStream([completeprompt]);
 
   res.writeHead(200, {
     "Content-Type": "text/plain",
@@ -554,23 +643,21 @@ app.listen(portnumber, address, () => {
 });
 
 async function reqtimehopFromGemini() {
-  let prompt =
-    "Pick a date very randomly ranging from the year 1500 to 2024. Give output in the format:YYYY/MM/DD";
-  let rand_date = await model.generateContent(prompt);
-  rand_date = rand_date.response;
-  prompt =
-    rand_date.text() +
-    " is a date. Tell a fact or fun fact kind of info about this date. Don't specify the given date again just tell the info and stop. THE INFO NEEDS TO BE ACCURATE.";
-  let date_info = await model.generateContent(prompt);
-  date_info = date_info.response;
+  const prompt = "You are going to be a 'random history' bot. Pick a date very randomly ranging from the year 1500 to 2024. Tell a fact or fun fact kind of info about this date. Don't specify the choosen date again just tell the info and stop. THE INFO NEEDS TO BE VERY ACCURATE AND SHOULDN'T BE A LONG EXPLANATION. Give output in the format: 'YYYY/MM/DD;information about the date;;' Use a single semicolon to specify the end of the date and 2 consecutive semicolons to specify the end of the whole respone.";
+  let content = await flashmodel.generateContent(prompt);
+  console.log(content.response.text());
+  const dateandinfo = content.response.text();
+  const rdate = dateandinfo.split(";")[0];
+  const rinfo = dateandinfo.split(";")[1];
+  console.log(rinfo);
   const responseData = {
-    date: rand_date.text(),
-    info: date_info.text(),
+    date: rdate,
+    info: rinfo
   };
   return responseData;
 }
 async function sendMessageToGemini(msg) {
-  let reply = await model.generateContent(msg);
+  let reply = await flashmodel.generateContent(msg);
   reply = reply.response.text();
   return reply;
 }
@@ -620,7 +707,7 @@ const defaultshortcuts = [
   { keyname: "sc_btnname_gotocurrentdate", keyvalue: "Current Date" },
   { keyname: "sc_fncall_gotocurrentdate", keyvalue: "closeWindow();updatedate(null,null,null);" },
   { keyname: "sc_btnname_addanevent", keyvalue: "Add An Event" },
-  { keyname: "sc_fncall_addanevent", keyvalue: "showeventpopup(\"addanevent\");" },
+  { keyname: "sc_fncall_addanevent", keyvalue: "showeventpopup('addanevent'\,'showeventwindow');" },
 ];
 async function addDefaultShortcuts(uname) {
   try {
@@ -646,6 +733,9 @@ async function addDefaultShortcuts(uname) {
   }
 }
 function checkTokenAuthenticity(token) { }
+
+
+
 
 /*async function mongotest() {
     try {

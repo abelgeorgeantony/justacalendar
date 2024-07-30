@@ -10,17 +10,22 @@
 *::-webkit-scrollbar {
   width: 0px;
 }
-
 body {
   position: fixed;
   display: flex;
   overflow-y: scroll;
 }
 
+#aboutcontentmark {
+  background-color: rgba(240, 255, 255, 0.65);
+  font-size: 210%;
+}
+
 #tablescontainer {
   width: 100vw;
   height: 100vh;
   background-color: rgb(255, 255, 255);
+  /*background-color: #5d4cc2;*/
   margin-left: -8px;
   margin-right: -8px;
   margin-top: -8px;
@@ -36,10 +41,12 @@ body {
   height: fit-content;
   margin-top: 1vh;
 }
+
 #searchinputdiv {
   display: flex;
   flex-direction: row;
 }
+
 #aisearchinput {
   justify-self: center;
   height: 4vh;
@@ -47,12 +54,14 @@ body {
   border-radius: 5px;
   font-size: 100%;
 }
+
 #aisearchbutton {
   align-self: center;
   margin-left: 2%;
   padding: 0;
   font-size: 107%;
 }
+
 #searchsuggestionsdiv {
   display: flex;
   flex-direction: column;
@@ -80,12 +89,27 @@ body {
   display: flex;
   flex-direction: row;
 }
-
 .eventnotifactionsquare {
   height: 11px;
   width: 11px;
   border: 1px solid black;
   margin-right: 6%;
+}
+
+.specialdaynotificationdiv {
+  position: absolute;
+  width: 12%;
+  display: flex;
+}
+.specialdaynotificationspan {
+  width: 100%;
+  display: block;
+  white-space: nowrap;
+  overflow: scroll;
+  text-overflow: ellipsis;
+  font-size: 45%;
+  font-weight: bolder;
+  color: #f10000;
 }
 
 #animationupdatemessage {
@@ -144,7 +168,7 @@ body {
 #calendar th a:link,
 #calendar th a:visited {
   text-decoration: none;
-  color: blue;
+  color: #0000cd;
 }
 
 .calsidebar tr td {
@@ -176,6 +200,7 @@ body {
 #useraccountimg {
   content: url("/user_account_icon_black.png");
 }
+
 #useraccountbtn:hover #useraccountimg {
   content: url("/user_account_icon_white.png");
 }
@@ -183,6 +208,7 @@ body {
 #aichatimg {
   content: url("/aichat_icon_black.png");
 }
+
 #aichatbtn:hover #aichatimg {
   content: url("/aichat_icon_white.png");
 }
@@ -190,6 +216,7 @@ body {
 #eventslistimg {
   content: url("/events_icon_black.png");
 }
+
 #eventslistbtn:hover #eventslistimg {
   content: url("/events_icon_white.png");
 }
@@ -197,6 +224,7 @@ body {
 #shortcutsimg {
   content: url("/shortcuts_icon_black.png");
 }
+
 #shortcutsbtn:hover #shortcutsimg {
   content: url("/shortcuts_icon_white.png");
 }
@@ -237,6 +265,16 @@ body {
 
   .eventnotificationdiv {
     margin-left: -2px;
+  }
+
+  .specialdaynotificationdiv {
+    width: 12%;
+  }
+  .specialdaynotificationspan {
+    overflow: scroll;
+    text-overflow: clip;
+    font-size: 50%;
+    font-weight: bolder;
   }
 
   #aisearchcontainer {

@@ -1,3 +1,42 @@
+/*class calendarState {
+    constructor() {
+        this.static = false;
+        this.previousChangeID = 1;
+        this.currentChangeID = 1;
+        this.observe();
+    }
+
+    async observe() {
+        while (true) {
+            await delay(2000);
+            if (this.previousChangeID === this.currentChangeID) {
+                this.previousChangeID = 1;
+                this.currentChangeID = 1;
+                this.declareAsStatic();
+            }
+            else {
+                this.previousChangeID = this.currentChangeID;
+                this.declareAsDynamic();
+            }
+        }
+    }
+    declareAsStatic() {
+        this.static = true;
+        fillCalendar(displayed_date);
+    }
+    declareAsDynamic() {
+        this.static = false;
+    }
+    notifyChange() {
+        console.log("Change noticed!");
+        this.currentChangeID = (this.currentChangeID + 1);
+    }
+}
+
+let calendar_state;*/
+
+
+
 function addalastrow() {
     const table = document.getElementById('calendar');
     const tr = document.createElement('tr');
@@ -38,7 +77,7 @@ function goToDate() {
             monthind = index;
         }*/
 
-        if(month.matchesSomehow(inputfields[1].value)) {
+        if (month.matchesSomehow(inputfields[1].value)) {
             monthind = index;
         }
     }
@@ -46,14 +85,17 @@ function goToDate() {
     let date = inputfields[0].value;
     updatedate(year, monthind, date);
 }
+let updatingdate = false;
 function updatedate(year, monthindex, date) {
-    if((year === null || year === undefined) && (monthindex === null|| monthindex === undefined) && (date === null || date === undefined)) {
+    updatingdate = true;
+    //calendar_state.notifyChange();
+    if ((year === null || year === undefined) && (monthindex === null || monthindex === undefined) && (date === null || date === undefined)) {
         console.log("Date info to update towards is either null or undefined; proceeding to update to current date!");
         year = new Date().getFullYear();
         monthindex = new Date().getMonth();
         date = new Date().getDate();
     }
-    console.log("Y:"+year+"M:"+monthindex+"D:"+date);
+    console.log("Y:" + year + "M:" + monthindex + "D:" + date);
     let good_date = false;
     if (monthindex === 1) { //february
         if (isLeap(year) === true) {
@@ -104,6 +146,7 @@ function updatedate(year, monthindex, date) {
     else {
         console.log("good_date: " + good_date);
     }
+    updatingdate = false;
 }
 
 function fillCalendar(cdate) {
@@ -112,6 +155,8 @@ function fillCalendar(cdate) {
         addalastrow();
     }
     displayed_date = cdate;
+    console.log(displayed_date.toISOString());
+
     const year = cdate.getFullYear();
     const month = cdate.getMonth();
     const firstday = new Date(year, month, 1).getDay();
@@ -122,8 +167,8 @@ function fillCalendar(cdate) {
         if (index === (firstday + datecount)) {
             datecount++;
             cell.textContent = datecount;
-            cell.innerHTML = cell.innerHTML + "<div class=\"eventnotificationdiv\"></div>";
-            cell.onclick = function () { showeventpopup(this); };
+            cell.innerHTML = "<div class=\"specialdaynotificationdiv\">&nbsp;</div>" + cell.innerHTML + "<div class=\"eventnotificationdiv\"></div>";
+            cell.onclick = function () { showeventpopup(this, "showmonthcalendar"); };
             if (datecount === cdate.getDate()) {
                 cell.style.border = "4px solid #00b643";
             }
@@ -170,6 +215,64 @@ function fillCalendar(cdate) {
         }
     }
     addNotificationSquares();
+    addHolidays();
+}
+
+
+let pageWidth = window.innerWidth || document.body.clientWidth;
+let treshold = Math.max(1, Math.floor(0.01 * (pageWidth)));
+let calendartouchstartX = 0;
+let calendartouchstartY = 0;
+let calendartouchendX = 0;
+let calendartouchendY = 0;
+const limit = Math.tan(45 * 1.5 / 180 * Math.PI);
+function handleGesture() {
+    let x = calendartouchendX - calendartouchstartX;
+    let y = calendartouchendY - calendartouchstartY;
+    let xy = Math.abs(x / y);
+    let yx = Math.abs(y / x);
+    if (Math.abs(x) > treshold || Math.abs(y) > treshold) {
+        if (xy <= limit) {
+            if (y < 0) {
+                console.log("swipe down to up");
+                incrementMonthDisplay();
+            } else {
+                console.log("swipe up to down");
+                decrementMonthDisplay();
+            }
+        }
+        if (yx <= limit) {
+            if (x < 0) {
+                console.log("swipe right to left");
+            } else {
+                console.log("swipe left to right");
+            }
+        }
+    } else {
+        console.log("tap");
+    }
+}
+function incrementMonthDisplay() {
+    if (updatingdate) {
+        return;
+    }
+    if (displayed_date.getMonth() === 11) {
+        updatedate((displayed_date.getFullYear() + 1), 0, 1);
+    }
+    else {
+        updatedate(displayed_date.getFullYear(), (displayed_date.getMonth() + 1), 1);
+    }
+}
+function decrementMonthDisplay() {
+    if (updatingdate) {
+        return;
+    }
+    if (displayed_date.getMonth() === 0) {
+        updatedate((displayed_date.getFullYear() - 1), 11, 1);
+    }
+    else {
+        updatedate(displayed_date.getFullYear(), (displayed_date.getMonth() - 1), 1);
+    }
 }
 
 function addNotificationSquares() {
@@ -190,19 +293,20 @@ function updateEventNotificationSquare() {
         const datetimeofevent = new Date(upcomingeventslist[upcomingeventslist.length - 1].asjson.datetime.slice(0, -1));
         if ((new Date(displayed_date).getMonth() === datetimeofevent.getMonth()) && (new Date(displayed_date).getFullYear() === datetimeofevent.getFullYear())) {
             for (const [index, cell] of cells.entries()) {
-                if ((Number(cell.textContent) === datetimeofevent.getDate()) && (cell.children[0].children.length < 4)) {
+                if ((Number(cell.textContent) === datetimeofevent.getDate()) && (cell.children[1].children.length < 4)) {
                     const clr = upcomingeventslist[upcomingeventslist.length - 1].asjson.color;
                     let clralreadyset = false;
-                    for (let j = 0; j < cell.children[0].children.length; j++) {
-                        if (hextorgb(clr) === cell.children[0].children[j].style.backgroundColor) {
+                    for (let j = 0; j < cell.children[1].children.length; j++) {
+                        if (hextorgb(clr) === cell.children[1].children[j].style.backgroundColor) {
                             clralreadyset = true;
+                            break;
                         }
                     }
                     if (clralreadyset === false) {
                         const square = document.createElement("div");
                         square.style.backgroundColor = clr;
                         square.classList.add("eventnotifactionsquare");
-                        cell.children[0].appendChild(square);
+                        cell.children[1].appendChild(square);
                     }
                 }
             }
@@ -221,18 +325,19 @@ function printUpcomingNotificationSquares() {
         if ((new Date(displayed_date).getMonth() === datetimeofevent.getMonth()) && (new Date(displayed_date).getFullYear() === datetimeofevent.getFullYear())) {
             const clr = upcomingeventslist[i].asjson.color;
             for (const [index, cell] of cells.entries()) {
-                if ((Number(cell.textContent) === datetimeofevent.getDate()) && (cell.children[0].children.length < 4)) {
+                if ((Number(cell.textContent) === datetimeofevent.getDate()) && (cell.children[1].children.length < 4)) {
                     let clralreadyset = false;
-                    for (let j = 0; j < cell.children[0].children.length; j++) {
-                        if (hextorgb(clr) === cell.children[0].children[j].style.backgroundColor) {
+                    for (let j = 0; j < cell.children[1].children.length; j++) {
+                        if (hextorgb(clr) === cell.children[1].children[j].style.backgroundColor) {
                             clralreadyset = true;
+                            break;
                         }
                     }
                     if (clralreadyset === false) {
                         const square = document.createElement("div");
                         square.style.backgroundColor = clr;
                         square.classList.add("eventnotifactionsquare");
-                        cell.children[0].appendChild(square);
+                        cell.children[1].appendChild(square);
                     }
                 }
             }
@@ -240,18 +345,77 @@ function printUpcomingNotificationSquares() {
     }
 }
 
+let holidayslist = [];
+let holidayssetforyear = null;
+function addHolidays() {
+    if ((holidayslist.length === 0) || (holidayssetforyear !== displayed_date.getFullYear()))/* && (calendar_state.static === true))*/ {
+        reqHolidaysFromServer(displayed_date.getFullYear());
+    }
+    else if (holidayssetforyear === displayed_date.getFullYear()) {
+        const holidaysofthismonth = getSingleMonthHolidays(displayed_date.getMonth());
+        const table = document.getElementById('calendar');
+        const cells = table.querySelectorAll('TD');
+        for (const [index, cell] of cells.entries()) {
+            for (let i = 0; i < holidaysofthismonth.length; i++) {
+                if (Number(cell.textContent) === new Date(holidaysofthismonth[i].date).getDate()) {
+                    const specialdaynotification = document.createElement("span");
+                    specialdaynotification.classList.add("specialdaynotificationspan");
+                    specialdaynotification.innerHTML = holidaysofthismonth[i].name;
+                    cell.children[0].appendChild(specialdaynotification);
+                    console.log(window.getComputedStyle(cell.children[0]).getPropertyValue("top"));
+                    const top = parseFloat(window.getComputedStyle(cell.children[0]).getPropertyValue("top").split("px")[0]);
+                    cell.children[0].style.top = (top - 15) + "px";
+                    break;
+                }
+            }
+        }
+    }
+}
+function reqHolidaysFromServer(vyear) {
+    holidayslist = [];
+    holidayssetforyear = null;
+    const holidayrequest = new XMLHttpRequest();
+    if (holidayrequest.readyState === 0 || holidayrequest.readyState === 4) {
+        holidayrequest.open("POST", "/fetchspecialdays", true);
+        holidayrequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        holidayrequest.send("region=" + "indian" + "&viewingyear=" + vyear);
+    }
+    holidayrequest.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            holidayslist = JSON.parse(holidayrequest.response);
+            if (holidayslist.length !== 0) {
+                holidayssetforyear = vyear;
+                addHolidays();
+            }
+            console.log(holidayslist);
+        };
+    }
+}
+function getSingleMonthHolidays(monthindex) {
+    let selectedholidays = [];
+    for (let i = 0; i < holidayslist.length; i++) {
+        if (new Date(holidayslist[i].date).getMonth() === monthindex) {
+            selectedholidays.push(holidayslist[i]);
+        }
+    }
+    return selectedholidays;
+}
+
+
+
+
 
 
 let incompletesuggestion = "";
 let alreadysuggesting = false;
 let streamfinished = true;
 async function suggestSearch() {
-    if(document.getElementById("searchsuggestionsdiv") !== null) {
+    if (document.getElementById("searchsuggestionsdiv") !== null) {
         document.getElementById("searchsuggestionsdiv").innerHTML = "";
     }
     const c_length = document.getElementById("aisearchinput").value.length;
     await delay(800);
-    if(c_length !== document.getElementById("aisearchinput").value.length) {
+    if (c_length !== document.getElementById("aisearchinput").value.length) {
         console.log("Will not request");
         return;
     }
@@ -329,5 +493,3 @@ async function* streamingFetch(fetchcall) {
         yield (new TextDecoder().decode(value));
     }
 }
-
-

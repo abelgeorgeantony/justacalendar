@@ -18,8 +18,7 @@ class label {
         return reduced;
     }
     matchesSomehow(name) {
-        console.log("name: "+name);
-        if((name.length > this.full.length) || (name.length < this.short.length)) {
+        if ((name.length > this.full.length) || (name.length < this.short.length)) {
             return false;
         }
         else if ((name === this.full) || (name === this.short)) {
@@ -28,11 +27,10 @@ class label {
         let matchingletters = 0;
         for (let i = 0; i < name.length; i++) {
             if ((name[i] === this.full[i].toUpperCase()) || (name[i] === this.full[i].toLowerCase())) {
-                console.log("matching");
                 matchingletters++;
             }
         }
-        if(matchingletters === name.length) {
+        if (matchingletters === name.length) {
             return true;
         }
         return false;
@@ -44,6 +42,22 @@ function hextorgb(hex) {
     dummy.style.backgroundColor = hex;
     return dummy.style.backgroundColor;
 }
+
+
+
+function deleteElementFromArray(arr, index) {
+    if (arr.length === 1 || index === (arr.length - 1)) {
+        arr.pop();
+        return;
+    }
+    for (let i = 0; i < (arr.length - 1); i++) {
+        if (i >= index) {
+            arr[i] = arr[i + 1];
+        }
+    }
+    arr.pop();
+}
+
 
 function copyObj(source, deep) {
     var o, prop, type;

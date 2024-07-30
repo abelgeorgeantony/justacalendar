@@ -274,15 +274,59 @@ async function solveScramble(ogtable, scrmbldtable) {
 
 
 
-
 const xnodes = [];
+function expandNode(gnode) {
+    let neighbors = [];
+    const directions = [
+        [-1, 0], [0, -1], [0, 1], [1, 0], [-1, -1], [-1, 1], [1, -1], [1, 1]
+    ]; // top, left, right, bottom, top-left, top-right, bottom-left, bottom-right
+    const rows = 4;
+    const cols = 7;
+    for (let upperrow = 0; upperrow < rows; upperrow++) {
+        for (let uppercol = 0; uppercol < cols; uppercol++) {
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    neighbors = [];
+                    for (const [dRow, dCol] of directions) {
+                        const nrow = row + dRow;
+                        const ncol = col + dCol;
+                        // Check if new cell is within grid bounds
+                        if (nrow >= 0 && nrow < rows && ncol >= 0 && ncol < cols) {
+                            console.log(nrow);
+
+                            if (gnode[row][col].id !== gnode[nrow][ncol].id) {
+                                neighbors.push({ row: nrow, col: ncol, id: gnode[nrow][ncol].id });
+                            }
+                        }
+                    }
+                    let rneighbor;
+                    if (neighbors.length > 1) {
+                        rneighbor = neighbors[Math.floor(Math.random() * neighbors.length)];
+                    }
+                    else if (neighbors.length === 1) {
+                        rneighbor = neighbors[0];
+                    }
+                    const temp1 = gnode[row][col];
+                    gnode[row][col] = gnode[rneighbor.row][rneighbor.col];
+                    gnode[rneighbor.row][rneighbor.col] = temp1;
+                    xnodes.push(copyObj(gnode, true));
+                    if (scramblerunning === false) {
+                        return;
+                    }
+                }
+            }
+        }
+    }
+}
+
+
 const ignorecells = [];
 const rows = 4; // gnode.length
 const cols = 7; // gnode[0].length
 const directions = [
     [-1, 0], [0, -1], [0, 1], [1, 0]
 ]; // top, left, right, bottom
-function expandNode(gnode) {
+function expandNode1(gnode) {
     for (let row = 0; row < rows; row++) {
         for (let col = 0; col < cols; col++) {
             if ((Number(gnode[row][col].id) === 0) && (shouldIgnore(row, col) === false)) {// Id == 0, means the cell is a blank space
@@ -324,7 +368,7 @@ function shouldIgnore(row, col) {
 
 
 
-function expandNode1(gnode) {
+function expandNod2(gnode) {
     const xnodes = [];
     const directions = [
         [-1, 0], [0, -1], [0, 1], [1, 0]
@@ -374,7 +418,7 @@ function expandNode1(gnode) {
 
 
 
-function expandNode2(gnode) {
+function expandNode3(gnode) {
     const xnodes = [];
     const directions = [
         [-1, 0], [0, -1], [0, 1], [1, 0]

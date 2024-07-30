@@ -1,4 +1,4 @@
-function getCookie(nametofind) {
+/*function getCookie(nametofind) {
     const cookies = document.cookie.split('; ');
     let cookievalue;
     cookies.forEach(cookie => {
@@ -8,7 +8,7 @@ function getCookie(nametofind) {
         }
     });
     return cookievalue;
-}
+}*/
 
 
 function showdatepicker() {
@@ -37,8 +37,12 @@ function hidedatepicker() {
 }
 
 let clickeddate;
-function showeventpopup(element) {
-    if (element.tagName === "TD") {
+/**afteradding legal parameters-"showeventwindow","showmonthcalendar"*/
+function showeventpopup(element, afteraction) {
+    if (element === "infobyai") {
+        switchtoInfoByAI(afteraction);
+    }
+    else if (element.tagName === "TD") {
         console.log(element);
         clickeddate = displayed_date.getFullYear();
         if (displayed_date.getMonth() < 9) {
@@ -47,26 +51,25 @@ function showeventpopup(element) {
         else {
             clickeddate = clickeddate + "-" + (displayed_date.getMonth() + 1);
         }
-        if (Number(element.textContent) < 10) {
-            clickeddate = clickeddate + "-0" + element.textContent;
+        console.log(element.textContent.split(element.children[0].textContent)[1]);
+        const dateincell = element.textContent.split(element.children[0].textContent)[1];
+        if (Number(dateincell) < 10) {
+            clickeddate = clickeddate + "-0" + dateincell;
         }
         else {
-            clickeddate = clickeddate + "-" + element.textContent;
+            clickeddate = clickeddate + "-" + dateincell;
         }
         console.log(clickeddate);
-        switchtoEventList();
+        switchtoEventList(afteraction);
     }
-    else if(element === "addanevent") {
-        switchtoEventAdder();
-    }
-    else {
-        clickeddate = element;
-        switchtoInfoByAI();
+    else if (element === "addanevent") {
+        switchtoEventAdder(afteraction);
     }
     dragPopUp(document.getElementById("eventpopup"));
     document.getElementById("eventpopupcontainer").style.zIndex = "9";
 }
 function hideeventpopup() {
+    clickeddate = null;
     if (document.getElementById("eventpopupbody").parentElement.children.length === 3) {
         //If the event popup was in infobyai mode then this branch
         //deletes the ai warning that's shown at the bottom
@@ -122,13 +125,13 @@ function dragPopUp(elmnt) {
 
 
 let eventslist = [];
-function switchtoEventList() {
+function switchtoEventList(afteraction) {
     closeEventsDropdown();
     document.getElementById("eventsdropbtn").innerHTML = "Events&#11167;";
     document.getElementById("eventsDropdown").children[0].innerText = "Add Event";
-    document.getElementById("eventsDropdown").children[0].href = "javascript:switchtoEventAdder();";
+    document.getElementById("eventsDropdown").children[0].href = "javascript:switchtoEventAdder('"+afteraction+"');";
     document.getElementById("eventsDropdown").children[1].innerText = "Info by AI";
-    document.getElementById("eventsDropdown").children[1].href = "javascript:switchtoInfoByAI();";
+    document.getElementById("eventsDropdown").children[1].href = "javascript:switchtoInfoByAI('"+afteraction+"');";
 
     eventslist = [];
     document.getElementById("eventpopupbody").setAttribute("style", "overflow:scroll; height: 40vh");
@@ -144,13 +147,13 @@ function switchtoEventList() {
     startTopBarAnimation(null);
     reqEventListofdayFromDB(clickeddate, 0);
 }
-function switchtoEventAdder() {
+function switchtoEventAdder(afteraction) {
     closeEventsDropdown();
     document.getElementById("eventsdropbtn").innerHTML = "Add Event&#11167;";
     document.getElementById("eventsDropdown").children[0].innerText = "Events";
-    document.getElementById("eventsDropdown").children[0].href = "javascript:switchtoEventList();";
+    document.getElementById("eventsDropdown").children[0].href = "javascript:switchtoEventList('"+afteraction+"');";
     document.getElementById("eventsDropdown").children[1].innerText = "Info by AI";
-    document.getElementById("eventsDropdown").children[1].href = "javascript:switchtoInfoByAI();";
+    document.getElementById("eventsDropdown").children[1].href = "javascript:switchtoInfoByAI('"+afteraction+"');";
 
     const topsection = document.createElement("div");
     const tlsection = document.createElement("div");
@@ -206,7 +209,7 @@ function switchtoEventAdder() {
     eventdescription.classList.add("eventinputfield");
 
     addeventbtn.innerText = "Add the Event!";
-    addeventbtn.onclick = function () { addEventToDB(); };
+    addeventbtn.onclick = function () { addEventToDB(afteraction); };
 
     topsection.style = "display: flex; flex-direction: row;";
     tlsection.style = "display: flex; flex-direction: column;";
@@ -226,13 +229,13 @@ function switchtoEventAdder() {
     document.getElementById("eventpopupbody").appendChild(eventdescription);
     document.getElementById("eventpopupbody").appendChild(addeventbtn);
 }
-function switchtoInfoByAI() {
+function switchtoInfoByAI(afteraction) {
     closeEventsDropdown();
     document.getElementById("eventsdropbtn").innerHTML = "Info by AI&#11167;";
     document.getElementById("eventsDropdown").children[0].innerText = "Events";
-    document.getElementById("eventsDropdown").children[0].href = "javascript:switchtoEventList();";
+    document.getElementById("eventsDropdown").children[0].href = "javascript:switchtoEventList('"+afteraction+"');";
     document.getElementById("eventsDropdown").children[1].innerText = "Add Event";
-    document.getElementById("eventsDropdown").children[1].href = "javascript:switchtoEventAdder();";
+    document.getElementById("eventsDropdown").children[1].href = "javascript:switchtoEventAdder('"+afteraction+"');";
 
 
     document.getElementById("eventpopupbody").setAttribute("style", "overflow:scroll; height: 40vh");
@@ -263,7 +266,7 @@ function closeEventsDropdown() {
 
 
 var xhttpeventsubmit = new XMLHttpRequest();
-function addEventToDB() {
+function addEventToDB(afteradding) {
     let dateofevent = document.getElementById("eventpopupbody").children[0].children[0].children[1].value;
     let timeofevent = document.getElementById("eventpopupbody").children[0].children[0].children[3].value;
     let colorofevent = document.getElementById("eventpopupbody").children[0].children[1].children[2].value;
@@ -280,13 +283,19 @@ function addEventToDB() {
             const result = JSON.parse(xhttpeventsubmit.response);
             if (result.eventadded === true) {
                 upcomingeventslist.length = 0;
-                fillCalendar(displayed_date);
-                switchtoEventList();
+                if (afteradding === "showeventwindow") {
+                    closeWindow();
+                    openEvents();
+                    hideeventpopup();
+                }
+                else if (afteradding === "showmonthcalendar") {
+                    fillCalendar(displayed_date);
+                    switchtoEventList(afteradding);
+                }
                 stopTopBarAnimation(document.getElementById("eventpopupbody").children[document.getElementById("eventpopupbody").children.length - 1]);
             }
         }
     };
-
 }
 
 var xhttpeventrequest = new XMLHttpRequest();

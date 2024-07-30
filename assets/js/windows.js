@@ -2,7 +2,7 @@ function openAccountandSettings() {
   const content = document.createElement("div");
   const name = document.createElement("div");
   const logout = document.createElement("button");
-  name.innerHTML = "Nick Name<br>@" + getCookie("username");
+  name.innerHTML = "@" + getCookie("username");
   logout.innerText = "Log Out";
   logout.setAttribute(
     "onclick",
@@ -126,13 +126,13 @@ function sendMessageToAi() {
     );
     xhttpmsgsubmit.send(
       "username=" +
-        getCookie("username") +
-        "&message=" +
-        msg +
-        "&date=" +
-        curr_date +
-        "&time=" +
-        curr_time,
+      getCookie("username") +
+      "&message=" +
+      msg +
+      "&date=" +
+      curr_date +
+      "&time=" +
+      curr_time,
     );
   }
   xhttpmsgsubmit.onreadystatechange = function () {
@@ -227,20 +227,20 @@ function openEvents() {
   const content = document.createElement("div");
   const sidebarbtnscontent = [
     {
-      fn: "sortEvents()",
+      fn: "sortEvents();",
       btnname: "Sort",
     },
     {
-      fn: "test()",
-      btnname: "test",
+      fn: "makeEventsSelectable()",
+      btnname: "Select",
     },
     {
-      fn: "test3",
-      btnname: "test",
+      fn: "selectAllEvents()",
+      btnname: "Select All",
     },
     {
-      fn: "test4",
-      btnname: "test",
+      fn: "showeventpopup('addanevent','showeventwindow');",
+      btnname: "Add",
     },
   ];
   openWindow("Events", content, sidebarbtnscontent);
@@ -248,42 +248,33 @@ function openEvents() {
     startTopBarAnimation(null);
     findandsetcurrdate_time();
     reqUpcomingEvent(curr_date, curr_time, 0, updateUpcomingEventsListOutput);
-  } else if (
-    upcomingeventslist[upcomingeventslist.length - 1].asjson.eventsfinished ===
-    true
-  ) {
+  } else if (upcomingeventslist[upcomingeventslist.length - 1].asjson.eventsfinished === true) {
     printUpcomingEventsList();
   }
 }
 function printUpcomingEventsList() {
   const events = document.getElementsByClassName("windowbody")[0].children[0];
   events.innerHTML = "";
+  console.log(upcomingeventslist.length);
+  console.log(upcomingeventslist);
+  if ((upcomingeventslist.length) <= 1 && (upcomingeventslist[0].asjson.eventsfinished === true)) {
+    events.innerHTML = "<h1 style=\"display: flex; justify-content: center; align-items: center; margin: 0; height: 100%; font-size: xxx-large;\">There isn't any upcoming events!</h1>";
+    return;
+  }
   for (let i = 0; i < upcomingeventslist.length - 1; i++) {
     events.appendChild(upcomingeventslist[i].ashtml);
+  }
+  if (events.children[0].children.length === 3) {
+    makeEventsUnselectable();
   }
 }
 
 const xhttpeventsrequest = new XMLHttpRequest();
 function reqUpcomingEvent(currdate, currtime, lastrec_eventid, UpdateUI) {
-  if (
-    xhttpeventsrequest.readyState === 0 ||
-    xhttpeventsrequest.readyState === 4
-  ) {
+  if (xhttpeventsrequest.readyState === 0 || xhttpeventsrequest.readyState === 4) {
     xhttpeventsrequest.open("POST", "/upcomingeventrequest", true);
-    xhttpeventsrequest.setRequestHeader(
-      "Content-type",
-      "application/x-www-form-urlencoded",
-    );
-    xhttpeventsrequest.send(
-      "username=" +
-        getCookie("username") +
-        "&currentdate=" +
-        currdate +
-        "&currenttime=" +
-        currtime +
-        "&lastreceivedeventid=" +
-        lastrec_eventid,
-    );
+    xhttpeventsrequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhttpeventsrequest.send("username=" + getCookie("username") + "&currentdate=" + currdate + "&currenttime=" + currtime + "&lastreceivedeventid=" + lastrec_eventid);
   }
   xhttpeventsrequest.onreadystatechange = function () {
     if (this.readyState == 4 && this.status == 200) {
@@ -374,6 +365,151 @@ function sortEvents() {
   printUpcomingEventsList();
   stopTopBarAnimation(null);
 }
+function makeEventsSelectable() {
+  if ((upcomingeventslist.length) <= 1 && (upcomingeventslist[0].asjson.eventsfinished === true)) {
+    return;
+  }
+  let selectbtn_a_tag;
+  let selectallbtn_a_tag;
+  let addbtn_a_tag;
+  if (document.getElementById("calsidebar2").children[0].children.length === 1) {
+    selectbtn_a_tag = document.getElementById("calsidebar2").children[0].children[0].children[1].children[0];
+    selectallbtn_a_tag = document.getElementById("calsidebar2").children[0].children[0].children[2].children[0];
+    addbtn_a_tag = document.getElementById("calsidebar2").children[0].children[0].children[3].children[0];
+  }
+  else {
+    selectbtn_a_tag = document.getElementById("calsidebar2").children[0].children[1].children[0].children[0];
+    selectallbtn_a_tag = document.getElementById("calsidebar2").children[0].children[2].children[0].children[0];
+    addbtn_a_tag = document.getElementById("calsidebar2").children[0].children[3].children[0].children[0];
+  }
+  selectbtn_a_tag.innerText = "Unselect";
+  selectbtn_a_tag.href = "javascript:makeEventsUnselectable();";
+  selectallbtn_a_tag.innerText = "Edit";
+  selectallbtn_a_tag.href = "javascript:editSelectedEvent();";
+  addbtn_a_tag.innerText = "Delete";
+  addbtn_a_tag.href = "javascript:deleteSelectedEvents();";
+
+  const events = document.getElementsByClassName("windowbody")[0].children[0];
+  for (let i = 0; i < events.children.length; i++) {
+    const selectbox = document.createElement("div");
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.oninput = function () { toggleSelection(this); };
+    checkbox.style = "height: 23px; width: 23px;"
+    selectbox.appendChild(checkbox);
+    selectbox.style = "align-self: stretch; display: flex; align-items: center; padding-left: 0.7%; margin-right: 1%; border-left: 2px solid black;";
+    events.children[i].appendChild(selectbox);
+  }
+}
+function makeEventsUnselectable() {
+  selectedEventsAsJson.length = 0;
+  const events = document.getElementsByClassName("windowbody")[0].children[0];
+  for (let i = 0; i < events.children.length; i++) {
+    events.children[i].removeChild(events.children[i].children[events.children[i].children.length - 1]);
+  }
+  let unselectbtn_a_tag;
+  let editbtn_a_tag;
+  let deletebtn_a_tag;
+  if (document.getElementById("calsidebar2").children[0].children.length === 1) {
+    unselectbtn_a_tag = document.getElementById("calsidebar2").children[0].children[0].children[1].children[0];
+    editbtn_a_tag = document.getElementById("calsidebar2").children[0].children[0].children[2].children[0];
+    deletebtn_a_tag = document.getElementById("calsidebar2").children[0].children[0].children[3].children[0];
+  }
+  else {
+    unselectbtn_a_tag = document.getElementById("calsidebar2").children[0].children[1].children[0].children[0];
+    editbtn_a_tag = document.getElementById("calsidebar2").children[0].children[2].children[0].children[0];
+    deletebtn_a_tag = document.getElementById("calsidebar2").children[0].children[3].children[0].children[0];
+  }
+  unselectbtn_a_tag.innerText = "Select";
+  unselectbtn_a_tag.href = "javascript:makeEventsSelectable();";
+  editbtn_a_tag.innerText = "Select All";
+  editbtn_a_tag.href = "javascript:selectAllEvents();";
+  deletebtn_a_tag.innerText = "Add";
+  deletebtn_a_tag.href = "javascript:showeventpopup('addanevent','showeventwindow');";
+}
+function selectAllEvents() {
+  if ((upcomingeventslist.length) <= 1 && (upcomingeventslist[0].asjson.eventsfinished === true)) {
+    return;
+  }
+  makeEventsSelectable();
+  const events = document.getElementsByClassName("windowbody")[0].children[0];
+  for (let i = 0; i < events.children.length; i++) {
+    const checkbox = events.children[i].children[events.children[i].children.length - 1].children[0];
+    checkbox.checked = true;
+    toggleSelection(checkbox);
+  }
+}
+const selectedEventsAsJson = [];
+function toggleSelection(checkbox) {
+  const eventcard = checkbox.parentNode.parentNode;
+  for (let i = 0; i < upcomingeventslist.length; i++) {
+    if (eventcard === upcomingeventslist[i].ashtml) {
+      if (selectedEventsAsJson.length === 0) {
+        selectedEventsAsJson.push(upcomingeventslist[i].asjson);
+        break;
+      }
+      for (let j = 0; j < selectedEventsAsJson.length; j++) {
+        if (selectedEventsAsJson[j] === upcomingeventslist[i].asjson) {
+          console.log("hello");
+          console.log(selectedEventsAsJson[j]);
+          console.log(upcomingeventslist[i].asjson);
+          deleteElementFromArray(selectedEventsAsJson, j);
+          break;
+        }
+        else if (j === (selectedEventsAsJson.length - 1)) {
+          selectedEventsAsJson.push(upcomingeventslist[i].asjson);
+          break;
+        }
+      }
+      break;
+    }
+  }
+  //console.log(selectedEventsAsJson[selectedEventsAsJson.length - 1]);
+  console.log("After:");
+  console.log(selectedEventsAsJson);
+}
+const deletedEventsAsJson = [];
+function deleteSelectedEvents() {
+  for (let i = 0; i < upcomingeventslist.length; i++) {
+    for (let j = 0; j < selectedEventsAsJson.length; j++) {
+      if (selectedEventsAsJson[j] === upcomingeventslist[i].asjson) {
+        deleteElementFromArray(upcomingeventslist, i);
+        deletedEventsAsJson.push(selectedEventsAsJson[j]);
+        deleteElementFromArray(selectedEventsAsJson, j);
+        j = j - 1;
+        i = i - 1;
+        break;
+      }
+    }
+  }
+  const id_todelete = deletedEventsAsJson[0].eventid;
+  deleteElementFromArray(deletedEventsAsJson, 0);
+  deleteEvent(id_todelete);
+  closeWindow();
+  openEvents();
+}
+
+async function deleteEvent(globaleid) {
+  const deletereq = new XMLHttpRequest();
+  deletereq.open("DELETE", "/deletesingleevent", true);
+  deletereq.setRequestHeader(
+    "Content-type",
+    "application/x-www-form-urlencoded",
+  );
+  deletereq.send("username=" + getCookie("username") + "&globalidtodelete=" + globaleid);
+  deletereq.onreadystatechange = function () {
+    if (this.readyState == 4 && this.status == 200) {
+      const res = JSON.parse(deletereq.response);
+      if ((res.deleted === true) && (deletedEventsAsJson.length > 0)) {
+        const id_todelete = deletedEventsAsJson[0].eventid;
+        deleteElementFromArray(deletedEventsAsJson, 0);
+        deleteEvent(id_todelete);
+      }
+      console.log(res);
+    }
+  };
+}
+
 function getDateTimeFromCard(ecard) {
   let dateandtime = ecard.children[1].innerText.split(/\r?\n/);
   const datebroken = dateandtime[0].split("/");
@@ -506,7 +642,7 @@ function buildShortcutOutput(content) {
     const btn = document.createElement("button");
     btn.innerText = orderedsclist[shortcut].btnname;
     btn.setAttribute("onclick", orderedsclist[shortcut].fncall);
-    btn.style = "height: 50%; width: 50%; font-size: larger;";
+    btn.style = "height: 50%; width: 50%; font-size: xx-large;";
     content.appendChild(btn);
   }
 }
@@ -522,9 +658,9 @@ function getShortcutsFromServer(lastreceived_sc_id, content) {
     );
     shortcutsrequest.send(
       "username=" +
-        getCookie("username") +
-        "&lastreceived_sc_id=" +
-        lastreceived_sc_id,
+      getCookie("username") +
+      "&lastreceived_sc_id=" +
+      lastreceived_sc_id,
     );
   }
   shortcutsrequest.onreadystatechange = function () {
@@ -548,14 +684,7 @@ function saveShortcut(name, value) {
       "Content-type",
       "application/x-www-form-urlencoded",
     );
-    shortcutsubmit.send(
-      "username=" +
-        getCookie("username") +
-        "&keyname=" +
-        name +
-        "&keyvalue=" +
-        value,
-    );
+    shortcutsubmit.send("username=" + getCookie("username") + "&keyname=" + name + "&keyvalue=" + value);
   }
   shortcutsrequest.onreadystatechange = function () {
     if (this.readyState == 4 && this.status == 200) {
@@ -635,7 +764,7 @@ function setWindowHeader(table, headingname) {
   heading.classList.add("calendarwindowheader");
   title.innerText = headingname;
   title.classList.add("calendarwindowheading");
-  closebutton.innerText = "X";
+  closebutton.innerHTML = "&times;";
   closebutton.classList.add("calendarwindowclosebutton");
   closebutton.onclick = function () {
     closeWindow();
@@ -685,8 +814,8 @@ function isElementVisible(
   console.log(
     partiallyVisible
       ? ((top > 0 && top < innerHeight) ||
-          (bottom > 0 && bottom < innerHeight)) &&
-          ((left > 0 && left < innerWidth) || (right > 0 && right < innerWidth))
+        (bottom > 0 && bottom < innerHeight)) &&
+      ((left > 0 && left < innerWidth) || (right > 0 && right < innerWidth))
       : top >= 0 && left >= 0 && bottom <= innerHeight && right <= innerWidth,
   );
 }
