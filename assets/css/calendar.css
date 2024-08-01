@@ -77,6 +77,8 @@ body {
   height: 85vh;
   margin: 0 auto;
 
+  font-family: Century Gothic, CenturyGothic, AppleGothic, sans-serif;
+
   border: 1vmin solid #000000;
   border-collapse: collapse;
   top: 50%;
@@ -129,6 +131,7 @@ body {
   position: fixed;
   border: 1vmin solid #000000;
   border-collapse: collapse;
+  font-family: Andale Mono,AndaleMono,monospace;
 }
 
 #calsidebar1 {

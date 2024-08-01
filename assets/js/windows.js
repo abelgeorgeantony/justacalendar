@@ -247,8 +247,8 @@ function openEvents() {
   if (upcomingeventslist.length === 0) {
     startTopBarAnimation(null);
     findandsetcurrdate_time();
-    reqUpcomingEvent(curr_date, curr_time, 0, updateUpcomingEventsListOutput);
-  } else if (upcomingeventslist[upcomingeventslist.length - 1].asjson.eventsfinished === true) {
+    reqUpcomingEvents(curr_date, curr_time, updateUpcomingEventsListOutput);
+  } else {
     printUpcomingEventsList();
   }
 }
@@ -257,11 +257,11 @@ function printUpcomingEventsList() {
   events.innerHTML = "";
   console.log(upcomingeventslist.length);
   console.log(upcomingeventslist);
-  if ((upcomingeventslist.length) <= 1 && (upcomingeventslist[0].asjson.eventsfinished === true)) {
+  if (upcomingeventslist.length === 0) {
     events.innerHTML = "<h1 style=\"display: flex; justify-content: center; align-items: center; margin: 0; height: 100%; font-size: xxx-large;\">There isn't any upcoming events!</h1>";
     return;
   }
-  for (let i = 0; i < upcomingeventslist.length - 1; i++) {
+  for (let i = 0; i < upcomingeventslist.length; i++) {
     events.appendChild(upcomingeventslist[i].ashtml);
   }
   if (events.children[0].children.length === 3) {
@@ -269,41 +269,35 @@ function printUpcomingEventsList() {
   }
 }
 
-const xhttpeventsrequest = new XMLHttpRequest();
-function reqUpcomingEvent(currdate, currtime, lastrec_eventid, UpdateUI) {
-  if (xhttpeventsrequest.readyState === 0 || xhttpeventsrequest.readyState === 4) {
-    xhttpeventsrequest.open("POST", "/upcomingeventrequest", true);
-    xhttpeventsrequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    xhttpeventsrequest.send("username=" + getCookie("username") + "&currentdate=" + currdate + "&currenttime=" + currtime + "&lastreceivedeventid=" + lastrec_eventid);
+const upcomingeventsrequest = new XMLHttpRequest();
+function reqUpcomingEvents(currdate, currtime, UpdateUI) {
+  if (upcomingeventsrequest.readyState === 0 || upcomingeventsrequest.readyState === 4) {
+    upcomingeventsrequest.open("POST", "/upcomingeventrequest", true);
+    upcomingeventsrequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    upcomingeventsrequest.send("username=" + getCookie("username") + "&currentdate=" + currdate + "&currenttime=" + currtime);
   }
-  xhttpeventsrequest.onreadystatechange = function () {
+  upcomingeventsrequest.onreadystatechange = function () {
     if (this.readyState == 4 && this.status == 200) {
-      const res = JSON.parse(xhttpeventsrequest.response);
-      const eventfromdb = {
-        ashtml: "",
-        asjson: res,
-      };
-      if (res.eventfound === true) {
-        upcomingeventslist.push(eventfromdb);
+      const res = JSON.parse(upcomingeventsrequest.response);
+      if (res.eventsfound === true) {
+        for (let i = 0; i < res.events.length; i++) {
+          upcomingeventslist.push({ ashtml: "", asjson: res.events[i] });
+        }
         UpdateUI();
       } else {
-        upcomingeventslist.push(eventfromdb);
         UpdateUI();
-        stopTopBarAnimation(null);
       }
+      stopTopBarAnimation(null);
     }
   };
 }
 function updateUpcomingEventsListOutput() {
+  if (upcomingeventslist.length === 0) {
+    printUpcomingEventsList();
+  }
   const wbody = document.getElementsByClassName("windowbody")[0];
-  if (
-    upcomingeventslist[upcomingeventslist.length - 1].asjson.eventfound === true
-  ) {
-    wbody.children[0].appendChild(
-      createEventCard(upcomingeventslist[upcomingeventslist.length - 1]),
-    );
-    const id = upcomingeventslist[upcomingeventslist.length - 1].asjson.eventid;
-    reqUpcomingEvent(curr_date, curr_time, id, updateUpcomingEventsListOutput);
+  for (let i = 0; i < upcomingeventslist.length; i++) {
+    wbody.children[0].appendChild(createEventCard(upcomingeventslist[i]));
   }
 }
 function createEventCard(eventdata) {
@@ -328,12 +322,10 @@ function createEventCard(eventdata) {
   edatetimeinfo.style =
     "margin-right: 1%; margin-left: 1%; align-self: center;";
   ename.innerText = eventdata.asjson.name;
-  ename.style =
-    "border-bottom: 1.5px solid #000; margin: 0; padding-left: 2%; font-size: 200%;";
+  ename.style = "border-bottom: 1.5px solid #000; margin: 0; padding-left: 2%; font-size: 200%;";
   if (eventdata.asjson.description !== "") {
     edescription.innerText = eventdata.asjson.description;
-    edescription.style =
-      "padding-left: 2%; margin-top: 1%; margin-bottom: 1.5%; font-size: 95%;";
+    edescription.style = "padding-left: 2%; margin-top: 1%; margin-bottom: 1.5%; font-size: 95%;";
   }
 
   eventinfo.appendChild(ename);
@@ -344,21 +336,21 @@ function createEventCard(eventdata) {
     "border-bottom: 3.5px solid #000; background:white; display:flex; flex-direction: row; justify-content:space-between;";
   eventcard.appendChild(eventinfo);
   eventcard.appendChild(edatetimeinfo);
-  upcomingeventslist[upcomingeventslist.length - 1].ashtml = eventcard;
+  eventdata.ashtml = eventcard;
   return eventcard;
 }
 function sortEvents() {
   startTopBarAnimation(null);
-  for (let j = 0; j < upcomingeventslist.length - 1; j++) {
-    for (let i = 0; i < upcomingeventslist.length - 2; i++) {
-      const current_eventdt = getDateTimeFromCard(upcomingeventslist[i].ashtml);
+  for (let i = 0; i < upcomingeventslist.length; i++) {
+    for (let j = 0; j < upcomingeventslist.length - i - 1; j++) {
+      const current_eventdt = getDateTimeFromCard(upcomingeventslist[j].ashtml);
       const next_eventdt = getDateTimeFromCard(
-        upcomingeventslist[i + 1].ashtml,
+        upcomingeventslist[j + 1].ashtml,
       );
       if (current_eventdt > next_eventdt) {
-        const temp = upcomingeventslist[i];
-        upcomingeventslist[i] = upcomingeventslist[i + 1];
-        upcomingeventslist[i + 1] = temp;
+        const temp = upcomingeventslist[j];
+        upcomingeventslist[j] = upcomingeventslist[j + 1];
+        upcomingeventslist[j + 1] = temp;
       }
     }
   }
@@ -428,7 +420,7 @@ function makeEventsUnselectable() {
   deletebtn_a_tag.href = "javascript:showeventpopup('addanevent','showeventwindow');";
 }
 function selectAllEvents() {
-  if ((upcomingeventslist.length) <= 1 && (upcomingeventslist[0].asjson.eventsfinished === true)) {
+  if (upcomingeventslist.length === 1) {
     return;
   }
   makeEventsSelectable();
@@ -450,9 +442,6 @@ function toggleSelection(checkbox) {
       }
       for (let j = 0; j < selectedEventsAsJson.length; j++) {
         if (selectedEventsAsJson[j] === upcomingeventslist[i].asjson) {
-          console.log("hello");
-          console.log(selectedEventsAsJson[j]);
-          console.log(upcomingeventslist[i].asjson);
           deleteElementFromArray(selectedEventsAsJson, j);
           break;
         }
@@ -464,9 +453,6 @@ function toggleSelection(checkbox) {
       break;
     }
   }
-  //console.log(selectedEventsAsJson[selectedEventsAsJson.length - 1]);
-  console.log("After:");
-  console.log(selectedEventsAsJson);
 }
 const deletedEventsAsJson = [];
 function deleteSelectedEvents() {
@@ -482,7 +468,8 @@ function deleteSelectedEvents() {
       }
     }
   }
-  const id_todelete = deletedEventsAsJson[0].eventid;
+  const id_todelete = deletedEventsAsJson[0].eventid_global;
+  console.log(id_todelete);
   deleteElementFromArray(deletedEventsAsJson, 0);
   deleteEvent(id_todelete);
   closeWindow();
@@ -501,7 +488,7 @@ async function deleteEvent(globaleid) {
     if (this.readyState == 4 && this.status == 200) {
       const res = JSON.parse(deletereq.response);
       if ((res.deleted === true) && (deletedEventsAsJson.length > 0)) {
-        const id_todelete = deletedEventsAsJson[0].eventid;
+        const id_todelete = deletedEventsAsJson[0].eventid_global;
         deleteElementFromArray(deletedEventsAsJson, 0);
         deleteEvent(id_todelete);
       }
@@ -696,8 +683,9 @@ function saveShortcut(name, value) {
     }
   };
 }
-
+let calendarmode = true;
 function openWindow(headingname, content, sidebarbtns) {
+  calendarmode = false;
   document.getElementById("aisearchcontainer").style.zIndex = "-999";
   const table = document.getElementById("calendar");
   const datebuttonsbar = document.getElementById("calsidebar2");
@@ -748,6 +736,7 @@ function openWindow(headingname, content, sidebarbtns) {
   setWindowBody(table, content);
 }
 function closeWindow() {
+  calendarmode = true;
   document.getElementById("aisearchcontainer").style.zIndex = "999";
   generateCalendarHeading();
   fillCalendar(displayed_date);
@@ -778,10 +767,6 @@ function setWindowHeader(table, headingname) {
 }
 function setWindowBody(table, content) {
   const windowbody = document.createElement("tr");
-
-  //wbodydiv.innerHTML = content.innerHTML;
-  console.log(content.style);
-  const style = content.style + "overflow:scroll; height: 100%; width: 100%;";
   content.style.cssText += "overflow:scroll; height: 100%; width: 100%;";
   windowbody.classList.add("windowbody");
 

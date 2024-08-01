@@ -211,10 +211,14 @@ app.post("/fetchspecialdays", urlencodedParser, async (req, res) => {
     const complexdata = data.items;
     console.log(complexdata.length);
     for (let i = 0; i < complexdata.length; i++) {
-      holidays.push({"name": complexdata[i].summary, "date": complexdata[i].start.date});
+      holidays.push({ "name": complexdata[i].summary, "date": complexdata[i].start.date });
     }
-  })
-  console.log(holidays);
+  }).catch((e) => {
+    console.error(e);
+    //process.exit(1);
+    res.status(200).send({holidaysfetchingfailed: true});
+    return;
+  });
   res.status(200).send(holidays);
 });
 app.post("/searchusername", urlencodedParser, async (req, res) => {
@@ -331,44 +335,39 @@ app.delete("/deletesingleevent", urlencodedParser, async (req, res) => {
     await mongoclient.close();
   }
 });
-app.post("/eventofdayrequest", urlencodedParser, async (req, res) => {
+app.post("/eventsofdayrequest", urlencodedParser, async (req, res) => {
   const uname = req.body.username;
   const daystart = new Date(req.body.date);
   const dayend = new Date(req.body.date + "T23:59Z");
-  const lastsentid = Number(req.body.lastreceivedeventid);
 
   try {
     await mongoclient.connect();
-    const eventscollection = mongoclient
-      .db("jac_events")
-      .collection(uname + "events");
-    let userevent;
+    const eventscollection = mongoclient.db("jac_events").collection(uname + "events");
+    let userevents;
     try {
-      userevent = await eventscollection.findOne({
-        eventid_local: { $gt: lastsentid },
-        $and: [{ datetime: { $gte: daystart } }, { datetime: { $lt: dayend } }],
-      });
+      userevents = await eventscollection.find({
+        $and: [{ datetime: { $gte: daystart } }, { datetime: { $lt: dayend } }]
+      }, {
+        projection: {
+          _id: 0,
+          eventid_global: 0
+        }
+      }).toArray();
     } catch (err) {
       console.log(err);
-      res
-        .status(200)
-        .send({ eventfound: false, error: true, eventsfinished: false });
+      res.status(200).send({ eventsfound: false, error: true, eventsfinished: false });
       await mongoclient.close();
       return;
     }
-    if (userevent !== null) {
+    if ((userevents !== null) && (userevents.length > 0)) {
       res.status(200).send({
-        eventfound: true,
-        eventid: userevent.eventid_local,
-        datetime: userevent.datetime,
-        color: userevent.color,
-        name: userevent.name,
-        description: userevent.description,
+        eventsfound: true,
+        error: false,
+        eventsfinished: true,
+        events: userevents
       });
     } else {
-      res
-        .status(200)
-        .send({ eventfound: false, error: false, eventsfinished: true });
+      res.status(200).send({ eventsfound: false, error: false, eventsfinished: true });
     }
   } finally {
     await mongoclient.close();
@@ -376,43 +375,36 @@ app.post("/eventofdayrequest", urlencodedParser, async (req, res) => {
 });
 app.post("/upcomingeventrequest", urlencodedParser, async (req, res) => {
   const uname = req.body.username;
-  const curr_datetime = new Date(
-    req.body.currentdate + "T" + req.body.currenttime + "Z",
-  );
-  const lastsentid = Number(req.body.lastreceivedeventid);
+  const curr_datetime = new Date(req.body.currentdate + "T" + req.body.currenttime + "Z");
 
   try {
     await mongoclient.connect();
-    const eventscollection = mongoclient
-      .db("jac_events")
-      .collection(uname + "events");
-    let userevent;
+    const eventscollection = mongoclient.db("jac_events").collection(uname + "events");
+    let userevents;
     try {
-      userevent = await eventscollection.findOne({
-        datetime: { $gte: curr_datetime },
-        eventid_global: { $gt: lastsentid },
-      });
+      userevents = await eventscollection.find({
+        datetime: { $gte: curr_datetime }
+      }, {
+        projection: {
+          _id: 0,
+          eventid_local: 0
+        }
+      }).toArray();
     } catch (err) {
       console.log(err);
-      res
-        .status(200)
-        .send({ eventfound: false, error: true, eventsfinished: false });
+      res.status(200).send({ eventsfound: false, error: true, eventsfinished: false });
       await mongoclient.close();
       return;
     }
-    if (userevent !== null) {
+    if ((userevents !== null) && (userevents.length > 0)) {
       res.status(200).send({
-        eventfound: true,
-        eventid: userevent.eventid_global,
-        datetime: userevent.datetime,
-        color: userevent.color,
-        name: userevent.name,
-        description: userevent.description,
+        eventsfound: true,
+        error: false,
+        eventsfinished: true,
+        events: userevents
       });
     } else {
-      res
-        .status(200)
-        .send({ eventfound: false, error: false, eventsfinished: true });
+      res.status(200).send({ eventsfound: false, error: false, eventsfinished: true });
     }
   } finally {
     await mongoclient.close();
@@ -442,9 +434,7 @@ app.post("/aichathistoryrequest", urlencodedParser, async (req, res) => {
       //console.log(singlechat);
     } catch (err) {
       console.log(err);
-      res
-        .status(200)
-        .send({ chatfound: false, error: true, chatsfinished: false });
+      res.status(200).send({ chatfound: false, error: true, chatsfinished: false });
       await mongoclient.close();
       return;
     }
@@ -528,9 +518,7 @@ app.post("/saveshortcut", urlencodedParser, async (req, res) => {
   const keyvaluefromclient = req.body.keyvalue;
   try {
     await mongoclient.connect();
-    const shortcutscollection = mongoclient
-      .db("jac_shortcuts")
-      .collection(uname + "shortcuts");
+    const shortcutscollection = mongoclient.db("jac_shortcuts").collection(uname + "shortcuts");
     try {
       const newshortcutid = (await shortcutscollection.countDocuments()) + 1;
       await shortcutscollection.insertOne({
@@ -636,9 +624,9 @@ app.get("/reqtimehop", async (req, res) => {
 });
 
 const portnumber = 3000;
-const address = "192.168.156.40";
-app.listen(portnumber, address, () => {
-  console.log("Server running in address: " + address);
+//const address = "192.168.69.40";
+app.listen(portnumber, () => {
+  //console.log("Server running in address: " + address);
   console.log("Port: " + portnumber);
 });
 
@@ -677,7 +665,7 @@ async function loginUser(uname, pword) {
       console.log(err);
       return null;
     }
-    if (user === null) {
+    if (user === null || user === undefined) {
       console.log("User doesn't exist!");
       return null;
     }

@@ -126,6 +126,9 @@
         });
 
     document.getElementById("calendar").onwheel = function (event) {
+        if(!calendarmode) {
+            return;
+        }
         console.log(event.deltaY)
         if (event.shiftKey === false) {
             console.log(event);
@@ -138,13 +141,26 @@
         }
     };
     document.getElementById("calendar").ontouchstart = function (event) {
+        if(!calendarmode) {
+            return;
+        }
         document.head.style.overscrollBehavior = "none";
         document.body.style.overscrollBehavior = "none";
         console.log(event.changedTouches[0]);
         calendartouchstartX = event.changedTouches[0].screenX;
         calendartouchstartY = event.changedTouches[0].screenY;
     }
+    document.getElementById("calendar").ontouchmove = function (event) {
+        if(!calendarmode) {
+            return;
+        }
+        document.head.style.overscrollBehavior = "none";
+        document.body.style.overscrollBehavior = "none";
+    }
     document.getElementById("calendar").ontouchend = function (event) {
+        if(!calendarmode) {
+            return;
+        }
         document.head.style.overscrollBehavior = "auto";
         document.body.style.overscrollBehavior = "auto";
         console.log(event.changedTouches[0]);

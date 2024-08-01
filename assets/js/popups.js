@@ -124,16 +124,16 @@ function dragPopUp(elmnt) {
 }
 
 
-let eventslist = [];
+let singledayeventslist = [];
 function switchtoEventList(afteraction) {
     closeEventsDropdown();
     document.getElementById("eventsdropbtn").innerHTML = "Events&#11167;";
     document.getElementById("eventsDropdown").children[0].innerText = "Add Event";
-    document.getElementById("eventsDropdown").children[0].href = "javascript:switchtoEventAdder('"+afteraction+"');";
+    document.getElementById("eventsDropdown").children[0].href = "javascript:switchtoEventAdder('" + afteraction + "');";
     document.getElementById("eventsDropdown").children[1].innerText = "Info by AI";
-    document.getElementById("eventsDropdown").children[1].href = "javascript:switchtoInfoByAI('"+afteraction+"');";
+    document.getElementById("eventsDropdown").children[1].href = "javascript:switchtoInfoByAI('" + afteraction + "');";
 
-    eventslist = [];
+    singledayeventslist = [];
     document.getElementById("eventpopupbody").setAttribute("style", "overflow:scroll; height: 40vh");
     const cdate = new Date(clickeddate).getDate() + "/" + (new Date(clickeddate).getMonth() + 1) + "/" + new Date(clickeddate).getFullYear();
     const datecard = document.createElement("div");
@@ -141,19 +141,18 @@ function switchtoEventList(afteraction) {
     datecard.style = "position: fixed; background: black; color: white;";
     const datecarddummy = document.createElement("div");
     datecarddummy.innerText = cdate;
-    datecarddummy.style = "color: #0000; background: #0000"
-    document.getElementById("eventpopupbody").appendChild(datecard);
-    document.getElementById("eventpopupbody").appendChild(datecarddummy);
+    datecarddummy.style = "color: #0000; background: #0000";
+    document.getElementById("eventpopupbody").append(datecard, datecarddummy);
     startTopBarAnimation(null);
-    reqEventListofdayFromDB(clickeddate, 0);
+    reqEventListofdayFromDB(clickeddate);
 }
 function switchtoEventAdder(afteraction) {
     closeEventsDropdown();
     document.getElementById("eventsdropbtn").innerHTML = "Add Event&#11167;";
     document.getElementById("eventsDropdown").children[0].innerText = "Events";
-    document.getElementById("eventsDropdown").children[0].href = "javascript:switchtoEventList('"+afteraction+"');";
+    document.getElementById("eventsDropdown").children[0].href = "javascript:switchtoEventList('" + afteraction + "');";
     document.getElementById("eventsDropdown").children[1].innerText = "Info by AI";
-    document.getElementById("eventsDropdown").children[1].href = "javascript:switchtoInfoByAI('"+afteraction+"');";
+    document.getElementById("eventsDropdown").children[1].href = "javascript:switchtoInfoByAI('" + afteraction + "');";
 
     const topsection = document.createElement("div");
     const tlsection = document.createElement("div");
@@ -233,9 +232,9 @@ function switchtoInfoByAI(afteraction) {
     closeEventsDropdown();
     document.getElementById("eventsdropbtn").innerHTML = "Info by AI&#11167;";
     document.getElementById("eventsDropdown").children[0].innerText = "Events";
-    document.getElementById("eventsDropdown").children[0].href = "javascript:switchtoEventList('"+afteraction+"');";
+    document.getElementById("eventsDropdown").children[0].href = "javascript:switchtoEventList('" + afteraction + "');";
     document.getElementById("eventsDropdown").children[1].innerText = "Add Event";
-    document.getElementById("eventsDropdown").children[1].href = "javascript:switchtoEventAdder('"+afteraction+"');";
+    document.getElementById("eventsDropdown").children[1].href = "javascript:switchtoEventAdder('" + afteraction + "');";
 
 
     document.getElementById("eventpopupbody").setAttribute("style", "overflow:scroll; height: 40vh");
@@ -298,45 +297,57 @@ function addEventToDB(afteradding) {
     };
 }
 
-var xhttpeventrequest = new XMLHttpRequest();
-function reqEventListofdayFromDB(dateofevent, lastreceivedeventid) {
-    if (xhttpeventrequest.readyState === 0 || xhttpeventrequest.readyState === 4) {
+var singledayeventsrequest = new XMLHttpRequest();
+function reqEventListofdayFromDB(dateofevent) {
+    if (singledayeventsrequest.readyState === 0 || singledayeventsrequest.readyState === 4) {
         //startTopBarAnimation();
-        xhttpeventrequest.open("POST", "/eventofdayrequest", true);
-        xhttpeventrequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        xhttpeventrequest.send("username=" + getCookie("username") + "&date=" + dateofevent + "&lastreceivedeventid=" + lastreceivedeventid);
+        singledayeventsrequest.open("POST", "/eventsofdayrequest", true);
+        singledayeventsrequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        singledayeventsrequest.send("username=" + getCookie("username") + "&date=" + dateofevent);
     }
-    xhttpeventrequest.onreadystatechange = function () {
+    singledayeventsrequest.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
-            const resfromdb = JSON.parse(xhttpeventrequest.response);
-            if (resfromdb.eventfound === true) {
-                eventslist.push(resfromdb);
-                console.log(eventslist[eventslist.length - 1]);
+            const resfromdb = JSON.parse(singledayeventsrequest.response);
+            if (resfromdb.eventsfound === true) {
+                singledayeventslist = resfromdb.events;
                 updateEventListofdayOutput();
             }
-            else {
-                eventslist.push(resfromdb);
-                updateEventListofdayOutput();
-                stopTopBarAnimation(null);
+            else if (resfromdb.eventsfinished === true) {
+                updateAsThereIsNoEventsForDay();
             }
+            else if (resfromdb.error === true) {
+                //updateEventsFetchingError();
+            }
+            stopTopBarAnimation(null);
         }
     };
 }
-function updateEventListofdayOutput() {
-    if (eventslist[0].eventfound === false || eventslist.length === 0) {
-        document.getElementById("eventpopupbody").innerHTML = document.getElementById("eventpopupbody").innerHTML + "<br>Add an event to list it here!";
+function updateAsThereIsNoEventsForDay() {
+    document.getElementById("eventpopupbody").innerHTML = document.getElementById("eventpopupbody").innerHTML + "<br>Add an event to list it here!";
+    const specialeventsdiv = document.createElement("div");
+    const date = Number(clickeddate.split("-")[2]);
+    const holidays = getSingleDateHolidays(date, displayed_date.getMonth());
+    for (let i = 0; i < holidays.length; i++) {
+        const specialeventscard = document.createElement("div");
+        specialeventscard.innerHTML = "&bull;" + holidays[i].name + "<br>";
+        specialeventscard.style = "color: #f10000; display: block; white-space: nowrap; overflow: scroll; text-overflow: clip;";
+        specialeventsdiv.appendChild(specialeventscard);
     }
-    else if (eventslist[eventslist.length - 1].eventfound === true) {
+    specialeventsdiv.style = "background-color: white;";
+    document.getElementById("eventpopupbody").appendChild(specialeventsdiv);
+}
+function updateEventListofdayOutput() {
+    for (let i = 0; i < singledayeventslist.length; i++) {
         const eventcard = document.createElement("div");
         const ename = document.createElement("h4");
         const edescription = document.createElement("p");
         const etime = document.createElement("p");
-        ename.innerText = eventslist[eventslist.length - 1].name;
-        ename.style = "border: 0.5px solid #000; margin: 0;";
-        edescription.innerText = eventslist[eventslist.length - 1].description;
+        ename.innerText = singledayeventslist[i].name;
+        ename.style = "border: 0.5px solid #000; margin: 0; display: block; white-space: nowrap; overflow: scroll; text-overflow: clip;";
+        edescription.innerText = singledayeventslist[i].description;
         edescription.style = "margin-top: 1%; margin-bottom: 0%; font-size: 55%;"
         eventcard.style = "border: 2px solid #000; background:white; display: flex; flex-direction: column;";
-        const time = new Date(eventslist[eventslist.length - 1].datetime.slice(0, -1));
+        const time = new Date(singledayeventslist[i].datetime.slice(0, -1));
         etime.innerText = formatTime(time.getHours(), time.getMinutes(), 12) + " " + findAmPm(time.getHours());
         etime.style = "align-self: end; margin-top: 1%; margin-bottom: 2%; margin-right: 1.5%; font-size: 40%; color: #616161;"
 
@@ -344,6 +355,16 @@ function updateEventListofdayOutput() {
         eventcard.appendChild(edescription);
         eventcard.appendChild(etime);
         document.getElementById("eventpopupbody").appendChild(eventcard);
-        reqEventListofdayFromDB(clickeddate, eventslist[eventslist.length - 1].eventid);
     }
+    const specialeventsdiv = document.createElement("div");
+    const date = Number(clickeddate.split("-")[2]);
+    const holidays = getSingleDateHolidays(date, displayed_date.getMonth());
+    for (let i = 0; i < holidays.length; i++) {
+        const specialeventscard = document.createElement("div");
+        specialeventscard.innerHTML = "&bull;" + holidays[i].name + "<br>";
+        specialeventscard.style = "color: #f10000; display: block; white-space: nowrap; overflow: scroll; text-overflow: clip;";
+        specialeventsdiv.appendChild(specialeventscard);
+    }
+    specialeventsdiv.style = "background-color: white; "
+    document.getElementById("eventpopupbody").appendChild(specialeventsdiv);
 }

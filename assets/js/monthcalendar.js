@@ -226,8 +226,34 @@ let calendartouchstartY = 0;
 let calendartouchendX = 0;
 let calendartouchendY = 0;
 const limit = Math.tan(45 * 1.5 / 180 * Math.PI);
+
 function handleGesture() {
-    let x = calendartouchendX - calendartouchstartX;
+    if(!calendarmode) {
+        return;
+    }
+    const { width, height } = document.getElementById("calendar").getBoundingClientRect();
+
+    const ratio_horizontal = (calendartouchendX - calendartouchstartX) / width;
+    const ratio_vertical = (calendartouchendY - calendartouchstartY) / height;
+
+    console.log(ratio_horizontal);
+    console.log(ratio_vertical);
+    if (ratio_horizontal > ratio_vertical && ratio_horizontal > 0.14) {
+        console.log('swipe-right');
+    }
+    else if (ratio_horizontal < ratio_vertical && ratio_horizontal < (-0.14)) {
+        console.log('swipe-left');
+    }
+    else if (ratio_vertical > ratio_horizontal && ratio_vertical > 0.10) {
+        console.log('swipe-down');
+        decrementMonthDisplay();
+    }
+    else if (ratio_vertical < ratio_horizontal && ratio_vertical < (-0.10)) {
+        console.log('swipe-up');
+        incrementMonthDisplay();
+    }
+
+    /*let x = calendartouchendX - calendartouchstartX;
     let y = calendartouchendY - calendartouchstartY;
     let xy = Math.abs(x / y);
     let yx = Math.abs(y / x);
@@ -250,7 +276,7 @@ function handleGesture() {
         }
     } else {
         console.log("tap");
-    }
+    }*/
 }
 function incrementMonthDisplay() {
     if (updatingdate) {
@@ -279,9 +305,9 @@ function addNotificationSquares() {
     if (upcomingeventslist.length === 0) {
         startTopBarAnimation(null);
         findandsetcurrdate_time();
-        reqUpcomingEvent(curr_date, curr_time, 0, updateEventNotificationSquare);
+        reqUpcomingEvents(curr_date, curr_time, updateEventNotificationSquare);
     }
-    else if (upcomingeventslist[upcomingeventslist.length - 1].asjson.eventsfinished === true) {
+    else{
         printUpcomingNotificationSquares();
     }
 }
@@ -289,12 +315,13 @@ function addNotificationSquares() {
 function updateEventNotificationSquare() {
     const table = document.getElementById('calendar');
     const cells = table.querySelectorAll('TD');
-    if (upcomingeventslist[upcomingeventslist.length - 1].asjson.eventfound === true) {
-        const datetimeofevent = new Date(upcomingeventslist[upcomingeventslist.length - 1].asjson.datetime.slice(0, -1));
+
+    for (let i = 0; i < upcomingeventslist.length; i++) {
+        const datetimeofevent = new Date(upcomingeventslist[i].asjson.datetime.slice(0, -1));
         if ((new Date(displayed_date).getMonth() === datetimeofevent.getMonth()) && (new Date(displayed_date).getFullYear() === datetimeofevent.getFullYear())) {
             for (const [index, cell] of cells.entries()) {
                 if ((Number(cell.textContent) === datetimeofevent.getDate()) && (cell.children[1].children.length < 4)) {
-                    const clr = upcomingeventslist[upcomingeventslist.length - 1].asjson.color;
+                    const clr = upcomingeventslist[i].asjson.color;
                     let clralreadyset = false;
                     for (let j = 0; j < cell.children[1].children.length; j++) {
                         if (hextorgb(clr) === cell.children[1].children[j].style.backgroundColor) {
@@ -311,16 +338,14 @@ function updateEventNotificationSquare() {
                 }
             }
         }
-        createEventCard(upcomingeventslist[upcomingeventslist.length - 1]);
-        const id = upcomingeventslist[upcomingeventslist.length - 1].asjson.eventid;
-        reqUpcomingEvent(curr_date, curr_time, id, updateEventNotificationSquare);
+        createEventCard(upcomingeventslist[i]);
     }
 }
 
 function printUpcomingNotificationSquares() {
     const table = document.getElementById('calendar');
     const cells = table.querySelectorAll('TD');
-    for (let i = 0; i < upcomingeventslist.length - 1; i++) {
+    for (let i = 0; i < upcomingeventslist.length; i++) {
         const datetimeofevent = new Date(upcomingeventslist[i].asjson.datetime.slice(0, -1));
         if ((new Date(displayed_date).getMonth() === datetimeofevent.getMonth()) && (new Date(displayed_date).getFullYear() === datetimeofevent.getFullYear())) {
             const clr = upcomingeventslist[i].asjson.color;
@@ -362,19 +387,20 @@ function addHolidays() {
                     specialdaynotification.classList.add("specialdaynotificationspan");
                     specialdaynotification.innerHTML = holidaysofthismonth[i].name;
                     cell.children[0].appendChild(specialdaynotification);
-                    console.log(window.getComputedStyle(cell.children[0]).getPropertyValue("top"));
                     const top = parseFloat(window.getComputedStyle(cell.children[0]).getPropertyValue("top").split("px")[0]);
+                    const left = parseFloat(window.getComputedStyle(cell.children[0]).getPropertyValue("left").split("px")[0]);
                     cell.children[0].style.top = (top - 15) + "px";
+                    cell.children[0].style.left = (left - 5) + "px";
                     break;
                 }
             }
         }
     }
 }
+const holidayrequest = new XMLHttpRequest();
 function reqHolidaysFromServer(vyear) {
     holidayslist = [];
     holidayssetforyear = null;
-    const holidayrequest = new XMLHttpRequest();
     if (holidayrequest.readyState === 0 || holidayrequest.readyState === 4) {
         holidayrequest.open("POST", "/fetchspecialdays", true);
         holidayrequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
@@ -395,6 +421,16 @@ function getSingleMonthHolidays(monthindex) {
     let selectedholidays = [];
     for (let i = 0; i < holidayslist.length; i++) {
         if (new Date(holidayslist[i].date).getMonth() === monthindex) {
+            selectedholidays.push(holidayslist[i]);
+        }
+    }
+    return selectedholidays;
+}
+function getSingleDateHolidays(date, monthindex) {
+    let selectedholidays = [];
+    for (let i = 0; i < holidayslist.length; i++) {
+        const d = new Date(holidayslist[i].date);
+        if ((d.getDate() === date) && (d.getMonth() === monthindex)) {
             selectedholidays.push(holidayslist[i]);
         }
     }
