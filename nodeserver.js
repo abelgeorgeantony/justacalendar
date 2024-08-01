@@ -1,4 +1,5 @@
 const https = require("https");
+var http = require('http');
 const express = require("express");
 const app = express();
 const { MongoClient, ServerApiVersion } = require("mongodb");
@@ -28,6 +29,7 @@ const uri = "mongodb://127.0.0.1:27017/";
 const mongoclient = new MongoClient(uri);
 
 app.get("/", (req, res) => {
+  console.log("hello");
   res.sendFile(path.join(__dirname, "assets/html/calendar.html"));
 });
 app.get("/home", (req, res) => {
@@ -636,11 +638,9 @@ const options = {
   key: fs.readFileSync("server.key"),
   cert: fs.readFileSync("server.cert"),
 };
-
-
-const portnumber = 80;
-https.createServer(options, app).listen(portnumber, function (req, res) {
-  console.log("Server started at port " + portnumber);
+http.createServer(app).listen(80);
+https.createServer(options, app).listen(443, function (req, res) {
+  console.log("Server started at port " + 443);
 });
 
 /*app.listen(portnumber, () => {
