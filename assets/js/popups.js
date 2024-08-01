@@ -345,7 +345,7 @@ function updateEventListofdayOutput() {
         ename.innerText = singledayeventslist[i].name;
         ename.style = "border: 0.5px solid #000; margin: 0; display: block; white-space: nowrap; overflow: scroll; text-overflow: clip;";
         edescription.innerText = singledayeventslist[i].description;
-        edescription.style = "margin-top: 1%; margin-bottom: 0%; font-size: 55%;"
+        edescription.style = "margin-top: 1%; margin-bottom: 0%; font-size: 55%; display: block; white-space: nowrap; overflow: scroll; text-overflow: clip;"
         eventcard.style = "border: 2px solid #000; background:white; display: flex; flex-direction: column;";
         const time = new Date(singledayeventslist[i].datetime.slice(0, -1));
         etime.innerText = formatTime(time.getHours(), time.getMinutes(), 12) + " " + findAmPm(time.getHours());

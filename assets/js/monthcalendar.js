@@ -452,10 +452,9 @@ async function suggestSearch() {
     const c_length = document.getElementById("aisearchinput").value.length;
     await delay(800);
     if (c_length !== document.getElementById("aisearchinput").value.length) {
-        console.log("Will not request");
+        console.log("Will not request search suggestion");
         return;
     }
-    console.log("Requesting...");
     const partialsearch = document.getElementById("aisearchinput").value;
     let suggestionsdiv = document.getElementById("searchsuggestionsdiv");
     if (partialsearch.length === 0) {
@@ -499,7 +498,6 @@ async function suggestSearch() {
             alreadysuggesting = false;
         })();
     }
-    measureofchange = 0;
 }
 function openSuggestionsDiv() {
     if (document.getElementById("searchsuggestionsdiv") === null) {

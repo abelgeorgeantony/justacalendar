@@ -1,10 +1,14 @@
+const https = require("https");
+const express = require("express");
+const app = express();
+const { MongoClient, ServerApiVersion } = require("mongodb");
+
+
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 require("dotenv").config();
 const url = require("url");
 const path = require("path");
-const { MongoClient, ServerApiVersion } = require("mongodb");
-const express = require("express");
-const app = express();
+const fs = require("fs");
 const bodyParser = require("body-parser");
 const jsonParser = bodyParser.json();
 const urlencodedParser = bodyParser.urlencoded({ extended: false });
@@ -207,6 +211,7 @@ app.post("/fetchspecialdays", urlencodedParser, async (req, res) => {
   console.log("Searching with timeMax.ISO=" + timeMax.toISOString());
   const gcalendar_url = (BASE_GCALENDAR_URL + "/" + GCALENDAR_REGION + "%23" + BASE_GCALENDAR_ID_FOR_PUBLIC_HOLIDAY + "/events?key=" + GCALENDARAPI_KEY + "&timeMin=" + timeMin.toISOString() + "&timeMax=" + timeMax.toISOString() + "&singleEvents=true&orderBy=startTime");
   let holidays = [];
+  let error = false;
   await fetch(gcalendar_url).then(response => response.json()).then(data => {
     const complexdata = data.items;
     console.log(complexdata.length);
@@ -216,10 +221,12 @@ app.post("/fetchspecialdays", urlencodedParser, async (req, res) => {
   }).catch((e) => {
     console.error(e);
     //process.exit(1);
-    res.status(200).send({holidaysfetchingfailed: true});
-    return;
+    error = true;
+    res.status(200).send({ holidaysfetchingfailed: true });
   });
-  res.status(200).send(holidays);
+  if (!error) {
+    res.status(200).send(holidays);
+  }
 });
 app.post("/searchusername", urlencodedParser, async (req, res) => {
   const unametosearch = req.body.uname;
@@ -251,9 +258,7 @@ app.post("/eventsubmit", urlencodedParser, async (req, res) => {
   const descriptionofevent = req.body.description;
   try {
     await mongoclient.connect();
-    const eventscollection = mongoclient
-      .db("jac_events")
-      .collection(uname + "events");
+    const eventscollection = mongoclient.db("jac_events").collection(uname + "events");
     try {
       const localmaxid_pipeline = [
         {
@@ -336,6 +341,7 @@ app.delete("/deletesingleevent", urlencodedParser, async (req, res) => {
   }
 });
 app.post("/eventsofdayrequest", urlencodedParser, async (req, res) => {
+  console.log("/eventsofdayrequest Request received");
   const uname = req.body.username;
   const daystart = new Date(req.body.date);
   const dayend = new Date(req.body.date + "T23:59Z");
@@ -374,6 +380,7 @@ app.post("/eventsofdayrequest", urlencodedParser, async (req, res) => {
   }
 });
 app.post("/upcomingeventrequest", urlencodedParser, async (req, res) => {
+  console.log("/upcomingeventrequest Request received");
   const uname = req.body.username;
   const curr_datetime = new Date(req.body.currentdate + "T" + req.body.currenttime + "Z");
 
@@ -411,6 +418,7 @@ app.post("/upcomingeventrequest", urlencodedParser, async (req, res) => {
   }
 });
 app.post("/aichathistoryrequest", urlencodedParser, async (req, res) => {
+  console.log("/aichathistoryrequest Request received");
   const uname = req.body.username;
   let lastsentid = Number(req.body.lastreceivedid);
   //const curr_datetime = new Date(req.body.currentdate + "T" + req.body.currenttime + "Z");
@@ -418,9 +426,7 @@ app.post("/aichathistoryrequest", urlencodedParser, async (req, res) => {
 
   try {
     await mongoclient.connect();
-    const chatscollection = mongoclient
-      .db("jac_aichats")
-      .collection(uname + "aichats");
+    const chatscollection = mongoclient.db("jac_aichats").collection(uname + "aichats");
     let singlechat;
     try {
       if (lastsentid === -1) {
@@ -460,6 +466,7 @@ app.post("/aichathistoryrequest", urlencodedParser, async (req, res) => {
 });
 
 app.post("/aichatmsgsubmit", urlencodedParser, async (req, res) => {
+  console.log("/aichatmsgsubmit Request received");
   const daystart = new Date(req.body.date);
   const dayend = new Date(req.body.date + "T23:59Z");
 
@@ -623,12 +630,22 @@ app.get("/reqtimehop", async (req, res) => {
   res.send(jsonContent);
 });
 
-const portnumber = 3000;
-//const address = "192.168.69.40";
-app.listen(portnumber, () => {
-  //console.log("Server running in address: " + address);
-  console.log("Port: " + portnumber);
+
+
+const options = {
+  key: fs.readFileSync("server.key"),
+  cert: fs.readFileSync("server.cert"),
+};
+
+
+const portnumber = 80;
+https.createServer(options, app).listen(portnumber, function (req, res) {
+  console.log("Server started at port " + portnumber);
 });
+
+/*app.listen(portnumber, () => {
+  console.log("Port: " + portnumber);
+});*/
 
 async function reqtimehopFromGemini() {
   const prompt = "You are going to be a 'random history' bot. Pick a date very randomly ranging from the year 1500 to 2024. Tell a fact or fun fact kind of info about this date. Don't specify the choosen date again just tell the info and stop. THE INFO NEEDS TO BE VERY ACCURATE AND SHOULDN'T BE A LONG EXPLANATION. Give output in the format: 'YYYY/MM/DD;information about the date;;' Use a single semicolon to specify the end of the date and 2 consecutive semicolons to specify the end of the whole respone.";
