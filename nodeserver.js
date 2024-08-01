@@ -643,9 +643,11 @@ console.log("HTTPS Server started at port " + 443);
 https.createServer(options, app).listen(443, function (req, res) {
   console.log("HTTPS Server started at port " + 443);
 });
-app.all('*', (req, res) => res.redirect(300, 'https://localhost'));
-http.createServer(app).listen(80, () => console.log(`HTTP server listening: http://localhost`));
-
+const httpApp = express();
+http.createServer(httpApp).listen(80, () => console.log(`HTTP server listening: http://localhost`));
+httpApp.get("*", function(req, res, next) {
+  res.redirect("https://" + req.headers.host + req.path);
+});
 
 /*app.listen(portnumber, () => {
   console.log("Port: " + portnumber);

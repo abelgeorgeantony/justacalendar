@@ -420,7 +420,7 @@ function makeEventsUnselectable() {
   deletebtn_a_tag.href = "javascript:showeventpopup('addanevent','showeventwindow');";
 }
 function selectAllEvents() {
-  if (upcomingeventslist.length === 1) {
+  if (upcomingeventslist.length === 0) {
     return;
   }
   makeEventsSelectable();
