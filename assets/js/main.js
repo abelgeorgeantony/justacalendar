@@ -4,6 +4,7 @@ let displayed_date = new Date();
 function loadTable(authenticated) {
     //localStorage.clear();
     if (authenticated === true) {
+        calendarmode = true;
         document.querySelector(":root").style.setProperty("--smalldevicethsize", "4.5vw");
         //calendar_state = new calendarState();
         const currentdate = new Date();
@@ -32,6 +33,7 @@ function generateCalendarHeading() {
 }
 
 async function generateWelcomeCalendar() {
+    calendarmode = false;
     const table = document.getElementById('calendar');
     generateCalendarHeading();
 

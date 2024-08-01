@@ -29,7 +29,6 @@ const uri = "mongodb://127.0.0.1:27017/";
 const mongoclient = new MongoClient(uri);
 
 app.get("/", (req, res) => {
-  console.log("hello");
   res.sendFile(path.join(__dirname, "assets/html/calendar.html"));
 });
 app.get("/home", (req, res) => {
@@ -638,10 +637,15 @@ const options = {
   key: fs.readFileSync("server.key"),
   cert: fs.readFileSync("server.cert"),
 };
-http.createServer(app).listen(80);
+/*http.createServer(app).listen(80, function (req, res) {
+console.log("HTTPS Server started at port " + 443);
+});*/
 https.createServer(options, app).listen(443, function (req, res) {
-  console.log("Server started at port " + 443);
+  console.log("HTTPS Server started at port " + 443);
 });
+app.all('*', (req, res) => res.redirect(300, 'https://localhost'));
+http.createServer(app).listen(80, () => console.log(`HTTP server listening: http://localhost`));
+
 
 /*app.listen(portnumber, () => {
   console.log("Port: " + portnumber);
@@ -737,19 +741,3 @@ async function addDefaultShortcuts(uname) {
     await mongoclient.close();
   }
 }
-function checkTokenAuthenticity(token) { }
-
-
-
-
-/*async function mongotest() {
-    try {
-        await mongoclient.connect();
-        const database = mongoclient.db('sample_mflix');
-        const movies = database.collection('movies');
-        await movies.insertOne({ dsfs: "sdfs" });
-    } finally {
-        // Ensures that the client will close when you finish/error
-        await mongoclient.close();
-    }
-}*/

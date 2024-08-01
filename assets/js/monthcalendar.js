@@ -150,6 +150,7 @@ function updatedate(year, monthindex, date) {
 }
 
 function fillCalendar(cdate) {
+    calendarmode = true;
     deletetable();
     for (let i = 0; i < weekscount(cdate); i++) {
         addalastrow();

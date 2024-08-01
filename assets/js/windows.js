@@ -683,7 +683,7 @@ function saveShortcut(name, value) {
     }
   };
 }
-let calendarmode = true;
+let calendarmode = false;
 function openWindow(headingname, content, sidebarbtns) {
   calendarmode = false;
   document.getElementById("aisearchcontainer").style.zIndex = "-999";
