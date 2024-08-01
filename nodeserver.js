@@ -635,7 +635,7 @@ app.get("/reqtimehop", async (req, res) => {
 
 const options = {
   key: fs.readFileSync("/etc/letsencrypt/live/justacalendar.online/privkey.pem"),
-  cert: fs.readFileSync("/etc/letsencrypt/live/justacalendar.online/privkey.pem"),
+  cert: fs.readFileSync("/etc/letsencrypt/live/justacalendar.online/fullchain.pem"),
 };
 https.createServer(options, app).listen(443, function (req, res) {
   console.log("HTTPS Server started at port " + 443);
