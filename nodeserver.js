@@ -634,12 +634,9 @@ app.get("/reqtimehop", async (req, res) => {
 
 
 const options = {
-  key: fs.readFileSync("server.key"),
-  cert: fs.readFileSync("server.cert"),
+  key: fs.readFileSync("/etc/letsencrypt/live/justacalendar.online/privkey.pem"),
+  cert: fs.readFileSync("/etc/letsencrypt/live/justacalendar.online/privkey.pem"),
 };
-/*http.createServer(app).listen(80, function (req, res) {
-console.log("HTTPS Server started at port " + 443);
-});*/
 https.createServer(options, app).listen(443, function (req, res) {
   console.log("HTTPS Server started at port " + 443);
 });
@@ -649,9 +646,7 @@ httpApp.get("*", function(req, res, next) {
   res.redirect("https://" + req.headers.host + req.path);
 });
 
-/*app.listen(portnumber, () => {
-  console.log("Port: " + portnumber);
-});*/
+
 
 async function reqtimehopFromGemini() {
   const prompt = "You are going to be a 'random history' bot. Pick a date very randomly ranging from the year 1500 to 2024. Tell a fact or fun fact kind of info about this date. Don't specify the choosen date again just tell the info and stop. THE INFO NEEDS TO BE VERY ACCURATE AND SHOULDN'T BE A LONG EXPLANATION. Give output in the format: 'YYYY/MM/DD;information about the date;;' Use a single semicolon to specify the end of the date and 2 consecutive semicolons to specify the end of the whole respone.";
