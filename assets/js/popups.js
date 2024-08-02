@@ -42,7 +42,7 @@ function showeventpopup(element, afteraction) {
     if (element === "infobyai") {
         switchtoInfoByAI(afteraction);
     }
-    else if (element.tagName === "TD") {
+    else if (element === "eventslist" || element.tagName === "TD") {
         console.log(element);
         clickeddate = displayed_date.getFullYear();
         if (displayed_date.getMonth() < 9) {
@@ -51,8 +51,14 @@ function showeventpopup(element, afteraction) {
         else {
             clickeddate = clickeddate + "-" + (displayed_date.getMonth() + 1);
         }
-        console.log(element.textContent.split(element.children[0].textContent)[1]);
-        const dateincell = element.textContent.split(element.children[0].textContent)[1];
+        let dateincell;
+        if (element === "eventslist") {
+            dateincell = displayed_date.getDate();
+        }
+        else {
+            console.log(element.textContent.split(element.children[0].textContent)[1]);
+            dateincell = element.textContent.split(element.children[0].textContent)[1];
+        }
         if (Number(dateincell) < 10) {
             clickeddate = clickeddate + "-0" + dateincell;
         }
@@ -291,6 +297,9 @@ function addEventToDB(afteradding) {
                     fillCalendar(displayed_date);
                     switchtoEventList(afteradding);
                 }
+                else {
+                    hideeventpopup();
+                }
                 stopTopBarAnimation(document.getElementById("eventpopupbody").children[document.getElementById("eventpopupbody").children.length - 1]);
             }
         }
@@ -367,4 +376,23 @@ function updateEventListofdayOutput() {
     }
     specialeventsdiv.style = "background-color: white; "
     document.getElementById("eventpopupbody").appendChild(specialeventsdiv);
+}
+
+
+function fillEventAdder(date, time, name, description, color) {
+    if ((date !== null) || (date !== undefined)) {
+        document.getElementById("eventpopupbody").children[0].children[0].children[1].value = date;
+    }
+    if ((time !== null)||(time !== undefined)) {
+        document.getElementById("eventpopupbody").children[0].children[0].children[3].value = time;
+    }
+    if ((name !== null)||(name !== undefined)) {
+        document.getElementById("eventpopupbody").children[0].children[0].children[5].value = name;
+    }
+    if ((description !== null)||(description !== undefined)) {
+        document.getElementById("eventpopupbody").children[2].value = description;
+    }
+    if ((color !== null) || (color !== undefined)) {
+        document.getElementById("eventpopupbody").children[0].children[1].children[2].value = color;
+    }
 }

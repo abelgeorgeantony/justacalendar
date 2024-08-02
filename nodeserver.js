@@ -483,6 +483,8 @@ app.post("/aichatmsgsubmit", urlencodedParser, async (req, res) => {
   res.status(200).send({ reply: replyFromGemini });
   //console.log(replyFromGemini);
 
+  const replymsg = replyFromGemini.split(";")[0];
+
   try {
     await mongoclient.connect();
     const chatscollection = mongoclient
@@ -505,7 +507,7 @@ app.post("/aichatmsgsubmit", urlencodedParser, async (req, res) => {
         datetime: datetimeofmsg,
         chatinitby: "user",
         usermsg: msg,
-        aimsg: replyFromGemini,
+        aimsg: replymsg,
       });
     } catch (err) {
       console.log(err);
@@ -590,9 +592,7 @@ app.post("/shortcutsrequest", urlencodedParser, async (req, res) => {
   }
 });
 
-const functions_list = [
-  { fncall: "updatedate();", fndescription: "This function call will update the calendar display to a specified date. The dates are specified by passing in the parameters - year, monthindex, date. The monthindex is like a 0 based array indexing. January is 0 and December is 11. Example call: updatedate(2024, 3, 12); This will update the calendar display to display the April of 2024. Passing in null will update to the current date of the device." },
-];
+
 app.post("/brewshortcutusingai", urlencodedParser, async (req, res) => {
   console.log("/brewshortcutusingai Request received");
   const description = req.body.description;
@@ -633,18 +633,18 @@ app.get("/reqtimehop", async (req, res) => {
 
 
 
-const options = {
+/*const options = {
   key: fs.readFileSync("/etc/letsencrypt/live/justacalendar.online/privkey.pem"),
   cert: fs.readFileSync("/etc/letsencrypt/live/justacalendar.online/fullchain.pem"),
 };
 https.createServer(options, app).listen(443, function (req, res) {
   console.log("HTTPS Server started at port " + 443);
-});
-const httpApp = express();
-http.createServer(httpApp).listen(80, () => console.log(`HTTP server listening: http://localhost`));
-httpApp.get("*", function(req, res, next) {
+});*/
+//const httpApp = express();
+http.createServer(app).listen(80, () => console.log(`HTTP server listening: http://localhost`));
+/*httpApp.get("*", function(req, res, next) {
   res.redirect("https://" + req.headers.host + req.path);
-});
+});*/
 
 
 
@@ -662,9 +662,57 @@ async function reqtimehopFromGemini() {
   };
   return responseData;
 }
+
+const searchaifunctions_list = [
+  { function_name: "updatedate", example_call: "updatedate(2024, 3, 12)", function_description: "This function call will update the calendar display to a specified date. The dates are specified by passing in the parameters - year, monthindex, date. The monthindex is like a 0 based array indexing. January is 0 and December is 11. Passing in null for all 3 arguments will update to the current date of the device." },
+  { function_name: "updatedate", example_call: "updatedate(2024, 3, 12)", function_description: "This function call will update the calendar display to a specified date. The dates are specified by passing in the parameters - year, monthindex, date. The monthindex is like a 0 based array indexing. January is 0 and December is 11. Passing in null for all 3 arguments will update to the current date of the device." },
+];
+const chataifunctions_list = [
+  { function_name: "closeWindow", example_call: "closeWindow()", function_description: "The chat between the user and you takes place in a window that is started by stopping the calendar display, So for the calendar display to start working again your window should be closed. The calendar display is simply just a space where the dates and week names of a month are shown. Nothing else is in the calendar display. If there are any functions that require you to use the calendar display then you have to close your window first!. Just a suggestion that if the user is simply just asking like 'when did Gandhi die', It would be better to tell the date directly rather than taking the user to the date in calendar display. If you are closing the window to satisfy the user's need, then it is a good idea to first say to the user a message like 'Sure, I will show you the date', then add a delay of atleast 3 seconds using setTimer() to close the window so that the user can read any reply you have sent and have a seamless experience. The function takes no arguments." },
+  { function_name: "updatedate", example_call: "updatedate(2000, 0, 1)", function_description: "This function call will set a variable that specifies the date that the calendar display and the app is currently pointing to. Some uses of setting this variable: making the calendar display point to the set date(If you want the calendar display to work you have to first close your window, otherwise you will only be setting the date variable), when opening the events popup the day for which events should be shown is decided from this variable. The date is specified by passing in the parameters - year, monthindex, date. The monthindex is like a 0 based array indexing. January is 0 and December is 11. Passing in null for all 3 arguments will update to the current date of the device." },
+  { function_name: "sendMessageToUser", example_call: "sendMessageToUser('Hello user')", function_description: "This function call will send a seperate message to the user. Don't repeat the message in your standard reply in this function call. The argument is required. The argument will be sent as the message to the user. The message should be enclosed in a pair of single quote(') like you would enclose a string in js. Donot use double quote to enclose the message as it will break parsing." },
+  { function_name: "showeventpopup", example_call: "showeventpopup('addanevent',null)", function_description: "This call will open a single day events related popup. The first argument specifies the mode of the popup. If you give 'addanevent' as the first parameter's value, then it will open the popup in event adding mode. Essentially it opens a popup that the user can use to add an event. Another possible value for it is, 'eventslist' which opens the popup in the mode that shows the events of a specified date. To specify a date you have to set date variable using updatedate(). Another possible value is 'infobyai' which you probably will never use. It just shows information about the date using AI, Which currently doesn't work. Don't worry about the second parameter just keep it as null"},
+  { function_name: "fillEventAdder", example_call: "fillEventAdder('2026-03-01', '16:20', 'name of event', 'description of event', '#ff0000')", function_description: "This function call will fill the fields of the event adding popup. First argument is the date. Date format should be: 'YYYY-MM-DD'. Second argument is the time of the event. It should be in the 24hr format without specifying the meridian. Format: 'HH:MM'. Third argument is the name of the event. Fourth argument is the description of the event. Fifth argument is the color that may notate the event some places. The color format should be in the hex numer format that specifies rgb. Format: '#000000'."},
+  { function_name: "sendMessageToAi", example_call: "sendMessageToAi('Hello AI')", function_description: "USE THIS function ONLY IF you want to message yourself. This function call will send a message to you(Gemini AI). You are not the user, this function is mainly meant for the user to use. So use this only if the user really needs this. It is a potential recursion, Recursion is complex and bad, but useful. Use it only if needed. The argument is optional. If you give an argument it will be sent as the message to you(Gemini AI), if not the value in the message typing box will be sent. The message should be enclosed in a pair of single quote(') like you would enclose a string in js. Donot use double quote to enclose the message as it will break parsing." },
+  { function_name: "setTimer", example_call: "setTimer(5, sendMessageToUser.bind(null, 'hello'))", function_description: "This function call will set a background timer for the specified seconds that's passed in as the first parameter and will execute the callback that's passed in as the second parameter. It can also be said that this call will set a delay befor the callback will be executed. If there are arguments that should be passed to the callback then the bind() function should be used like in the example, the first argument of bind() is always null and then the parameters which the callback need should be passed. If there are no parameters for the callback then only the name of the callback function should be specified." },
+];
 async function sendMessageToGemini(msg) {
-  let reply = await flashmodel.generateContent(msg);
+  let appinfo = "Anything you say or the functions you choose will directly be sent to the user so chat to the user, not to me."
+    + "I hava a calendar app. You are integrated as a chatbot/assistant in the app."
+    + "I am giving you the ability to interact with the app by exposing the names and "
+    + "descriptions of some JS functions in the app to you. The functions will be "
+    + "exposed in the format: "
+    + "function_name: nameofafunction1, example_call: nameofafunction1(args), function_description: 'a sentence that describes the function'; "
+    + "function_name: nameofafunction2, example_call: nameofafunction2(args), function_description: 'a sentence that describes the function';;. "
+    + "The individual details about each function is seperated by a comma and each function is seperated by a semicolon. "
+    + "Atlast two consecutive semicolons will declare the end of information about the functions you can use. "
+    + "The actual functions you can use are: ";
+
+  for (let i = 0; i < chataifunctions_list.length; i++) {
+    appinfo = appinfo + "function_name: " + chataifunctions_list[i].function_name + ", ";
+    appinfo = appinfo + "example_call: " + chataifunctions_list[i].example_call + ", ";
+    appinfo = appinfo + "function_description: '" + chataifunctions_list[i].function_description + "'; ";
+  }
+  appinfo = appinfo.slice(0, appinfo.length - 1) + ";";
+  appinfo = appinfo + "So these are the functions that you can use. Don't expose these functions to the user. "
+    + "Whenever you feel like the user is asking/telling you to do some task in the app, "
+    + "you need to select some functions from the ones I taught you to perform those tasks. "
+    + "After selecting the functions you have to construct the function calls logically "
+    + "like how you would write a script that already has the functions predefined. "
+    + "You just have to call them. Now for the format of output, First analyse the "
+    + "user's message and if it requires the use of functions select the functions "
+    + "logically. First write the response to the user, then seperated by two consecutive "
+    + "semicolons specify the function calls in the order they should be executed. "
+    + "Also end your whole response with 2 consecutive semicolons. Don't use single quote in the response, only use it for marking arguments. Format for output: "
+    + "Message to the user;;function1();function2('arg');;. If you feel like the user didn't ask you for any service and that you don't need to use the functions then don't use the functions. Just put null if you didn't choose any functions.";
+
+  appinfo = appinfo + "That is all the instructions I have for you. The user has sent a message to you. I want you to analyse it and respond to it accordingly to how I instructed. I reapeat you are not talking to me so don't say anything to me you are only instructed to chat to the user. I will never be able to send the following message. So it is not from me but the user: ";
+  console.log(appinfo + msg)
+  console.log(appinfo.length);
+  const prompt = appinfo + "'" + msg + "'";
+  let reply = await flashmodel.generateContent(prompt);
   reply = reply.response.text();
+  console.log(reply);
   return reply;
 }
 

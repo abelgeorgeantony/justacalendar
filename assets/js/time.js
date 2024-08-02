@@ -169,3 +169,16 @@ function deformatTime(timestr) {
     hourandminute[1] = Number(hourandminute[1].split(" ")[0]);
     return hourandminute;
 }
+
+
+function delay(t) {
+    return new Promise(resolve => {
+        setTimeout(resolve, t);
+    });
+}
+
+async function setTimer(seconds, bindedcallback) {
+    const ms = (seconds * 1000);
+    await delay(ms);
+    bindedcallback();
+}

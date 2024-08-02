@@ -82,10 +82,7 @@ function openAIchat() {
     },
   ];
   openWindow("AI Chat(Gemini)", content, sidebarbtnscontent);
-  if (
-    chathistorylist.length === 0 ||
-    chathistorylist[chathistorylist.length - 1].chatsfinished === false
-  ) {
+  if (chathistorylist.length === 0 || chathistorylist[chathistorylist.length - 1].chatsfinished === false) {
     reqChatHistory(-1);
   } else {
     addChatListToChatHistory();
@@ -111,11 +108,11 @@ function reqChatHistory(lastreceivedid) {
   };
 }
 var xhttpmsgsubmit = new XMLHttpRequest();
-function sendMessageToAi() {
+function sendMessageToAi(msg) {
   findandsetcurrdate_time();
-  const msg =
-    document.querySelector(".windowbody").children[0].children[0].children[1]
-      .children[0].value;
+  if (msg === undefined || msg === null || msg === "") {
+    msg = document.querySelector(".windowbody").children[0].children[0].children[1].children[0].value;
+  }
   console.log(msg);
   addUserMsgToOutput(msg);
   if (xhttpmsgsubmit.readyState === 0 || xhttpmsgsubmit.readyState === 4) {
@@ -124,29 +121,52 @@ function sendMessageToAi() {
       "Content-type",
       "application/x-www-form-urlencoded",
     );
-    xhttpmsgsubmit.send(
-      "username=" +
-      getCookie("username") +
-      "&message=" +
-      msg +
-      "&date=" +
-      curr_date +
-      "&time=" +
-      curr_time,
-    );
+    xhttpmsgsubmit.send("username=" + getCookie("username") + "&message=" + msg + "&date=" + curr_date + "&time=" + curr_time);
   }
   xhttpmsgsubmit.onreadystatechange = function () {
     if (this.readyState == 4 && this.status == 200) {
       const res = JSON.parse(xhttpmsgsubmit.response);
-      console.log(res.reply);
-      addAIMsgToOutput(res.reply);
+      const split_reply = res.reply.split(";");
+      const replymsg = split_reply[0];
+      console.log(replymsg);
+      addAIMsgToOutput(replymsg);
+      for (let i = 1; i < split_reply.length; i++) {
+        eval(split_reply[i]);
+        console.log(split_reply[i]);
+      }
     }
   };
 }
+function sendMessageToUser(msg) {
+  findandsetcurrdate_time();
+  console.log(msg);
+  addAIMsgToOutput(msg);
+  /*if (xhttpmsgsubmit.readyState === 0 || xhttpmsgsubmit.readyState === 4) {
+    xhttpmsgsubmit.open("POST", "/aichatmsgsubmit", true);
+    xhttpmsgsubmit.setRequestHeader(
+      "Content-type",
+      "application/x-www-form-urlencoded",
+    );
+    xhttpmsgsubmit.send("username=" + getCookie("username") + "&message=" + msg + "&date=" + curr_date + "&time=" + curr_time);
+  }
+  xhttpmsgsubmit.onreadystatechange = function () {
+    if (this.readyState == 4 && this.status == 200) {
+      const res = JSON.parse(xhttpmsgsubmit.response);
+      const split_reply = res.reply.split(";;");
+      const replymsg = split_reply[0];
+      console.log(replymsg);
+      addAIMsgToOutput(replymsg);
+      for(let i = 1; i < split_reply.length; i++) {
+        eval(split_reply[i]);
+        console.log(split_reply[i]);
+      }
+    }
+  };*/
+}
+
 let chathistorylist = [];
 function addSingleChatHistory(singlechat) {
-  const chathistory =
-    document.querySelector(".windowbody").children[0].children[0].children[0];
+  const chathistory = document.querySelector(".windowbody").children[0].children[0].children[0];
   if (singlechat.chatfound === true) {
     if (singlechat.chatinitby === "user") {
       chathistory.insertBefore(
@@ -191,6 +211,10 @@ function addChatListToChatHistory() {
   scrollToElement(chathistory.children[chathistory.children.length - 1]);
 }
 function addUserMsgToOutput(msgtoadd) {
+  if (calendarmode === true) {
+    addNewMessageNotification(document.getElementById("aichatbtn"));
+    return;
+  }
   const msgfield =
     document.querySelector(".windowbody").children[0].children[0].children[1]
       .children[0];
@@ -207,6 +231,10 @@ function addUserMsgToOutput(msgtoadd) {
   scrollToElement(chathistory.children[chathistory.children.length - 1]);
 }
 function addAIMsgToOutput(msgtoadd) {
+  if (calendarmode === true) {
+    addNewMessageNotification(document.getElementById("aichatbtn"));
+    return;
+  }
   const msgfield =
     document.querySelector(".windowbody").children[0].children[0].children[1]
       .children[0];
@@ -224,6 +252,9 @@ function addAIMsgToOutput(msgtoadd) {
 
 const upcomingeventslist = [];
 function openEvents() {
+  if (document.getElementById("windownotification") !== null) {
+    document.getElementById("windownotification").parentNode.removeChild(document.getElementById("windownotification"));
+  }
   const content = document.createElement("div");
   const sidebarbtnscontent = [
     {
@@ -806,4 +837,15 @@ function isElementVisible(
 }
 function scrollToElement(element) {
   element.scrollIntoView(true);
+}
+
+
+function addNewMessageNotification(btn) {
+  if (document.getElementById("windownotification") !== null) {
+    return;
+  }
+  const notification = document.createElement("div");
+  notification.id = "windownotification";
+  notification.style = "height: 12px; width: 12px; border: 4px solid black; background-color: red; position: absolute; align-self: start; margin-left: 78%;";
+  btn.appendChild(notification)
 }

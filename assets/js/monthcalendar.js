@@ -140,8 +140,13 @@ function updatedate(year, monthindex, date) {
     if (good_date === true) {
         console.log("good_date: " + good_date);
         let newdate = new Date(year, monthindex, date);
-        fillCalendar(newdate);
-        addsidebarscontent();
+        if (!calendarmode) {
+            displayed_date = newdate
+        }
+        else {
+            fillCalendar(newdate);
+            addsidebarscontent();
+        }
     }
     else {
         console.log("good_date: " + good_date);
@@ -229,7 +234,7 @@ let calendartouchendY = 0;
 const limit = Math.tan(45 * 1.5 / 180 * Math.PI);
 
 function handleGesture() {
-    if(!calendarmode) {
+    if (!calendarmode) {
         return;
     }
     const { width, height } = document.getElementById("calendar").getBoundingClientRect();
@@ -308,7 +313,7 @@ function addNotificationSquares() {
         findandsetcurrdate_time();
         reqUpcomingEvents(curr_date, curr_time, updateEventNotificationSquare);
     }
-    else{
+    else {
         printUpcomingNotificationSquares();
     }
 }

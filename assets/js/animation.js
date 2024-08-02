@@ -222,11 +222,6 @@ async function scrambleReverse(rstart, rend, cstart, cend) {
         }
     }
 }
-function delay(t) {
-    return new Promise(resolve => {
-        setTimeout(resolve, t);
-    });
-}
 
 
 
